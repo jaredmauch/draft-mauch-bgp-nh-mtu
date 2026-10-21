@@ -82,15 +82,15 @@ Table of Contents
      3.1.  Network Boundary  . . . . . . . . . . . . . . . . . . . .   4
      3.2.  Attaching on Receipt  . . . . . . . . . . . . . . . . . .   4
      3.3.  Advertisement . . . . . . . . . . . . . . . . . . . . . .   5
-     3.4.  Use of the Value  . . . . . . . . . . . . . . . . . . . .   5
+     3.4.  Use of the Value  . . . . . . . . . . . . . . . . . . . .   6
    4.  Example . . . . . . . . . . . . . . . . . . . . . . . . . . .   6
    5.  Error Handling  . . . . . . . . . . . . . . . . . . . . . . .   7
-   6.  Operational Considerations  . . . . . . . . . . . . . . . . .   7
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   7
-   8.  Security Considerations . . . . . . . . . . . . . . . . . . .   7
+   6.  Operational Considerations  . . . . . . . . . . . . . . . . .   8
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   8
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .   8
    9.  Normative References  . . . . . . . . . . . . . . . . . . . .   8
-   10. Informative References  . . . . . . . . . . . . . . . . . . .   8
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   9
+   10. Informative References  . . . . . . . . . . . . . . . . . . .   9
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  10
 
 1.  Introduction
 
@@ -177,10 +177,19 @@ Internet-Draft              BGP Next Hop MTU                October 2026
 
    IP MTU is an unsigned 32-bit integer in network byte order: the
    maximum acceptable IP packet size across the network boundary for the
-   NLRI.  For IPv4 NLRI the value MUST be in the range 68 to 65535
-   inclusive ([RFC791]).  For IPv6 NLRI the value MUST be in the range
-   1280 to 4294967295 inclusive ([RFC8200]).  Values greater than 65535
-   are for IPv6 jumbograms ([RFC2675]).
+   NLRI (IPv6 header and payload included; see [RFC8200]).  This is a
+   link / IP MTU, not the Jumbo Payload Length field of [RFC2675].
+
+   For IPv4 NLRI the value MUST be in the range 68 to 65535 inclusive
+   ([RFC791]).  For IPv6 NLRI the value MUST be in the range 1280 to
+   4294967295 inclusive.  Without the Jumbo Payload option, the largest
+   IPv6 packet is 65575 octets (40-octet IPv6 header plus a Payload
+   Length of 65535).  Values from 1280 to 65575 inclusive are therefore
+   ordinary IPv6 IP MTUs.  Values greater than or equal to 65576
+   indicate a jumbogram-capable boundary: [RFC2675] requires a link MTU
+   greater than 65575 before jumbograms can be sent, and such a promise
+   is useful only where nodes will send and receive the Jumbo Payload
+   option.
 
 3.  Procedures
 
@@ -207,6 +216,16 @@ Internet-Draft              BGP Next Hop MTU                October 2026
    or not the route arrived with the attribute.  The attached value is
    computed as follows:
 
+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 4]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
    1.  Let L be the boundary IP MTU.  If L cannot be determined, or is
        outside the range in Section 2.1 for the address family, the
        speaker MUST NOT attach the attribute.
@@ -217,14 +236,6 @@ Internet-Draft              BGP Next Hop MTU                October 2026
 
    3.  Local policy MAY further reduce the value and MUST NOT increase
        it.  The result MUST remain in range for the address family.
-
-
-
-
-Mauch                     Expires 24 April 2027                 [Page 4]
-
-Internet-Draft              BGP Next Hop MTU                October 2026
-
 
    All NLRI in one UPDATE that carries NEXT_HOP_MTU MUST share the same
    value; otherwise they MUST be split across UPDATE messages.  Absence
@@ -258,20 +269,9 @@ Internet-Draft              BGP Next Hop MTU                October 2026
    receiving speaker may still attach from its own side whether or not
    the originator sent the attribute.
 
-3.4.  Use of the Value
 
-   Attaching NEXT_HOP_MTU promises that an IP packet destined to a
-   covered NLRI, of size less than or equal to the value, is acceptable
-   across the identified boundary (the interface permits it and the
-   speaker will forward it).  Applications MAY use the value when
-   sending toward the NLRI across that boundary.  Path MTU Discovery
-   remains required for the minimum MTU of a full path.
 
-   A speaker MAY program the value as a per-destination forwarding MTU
-   only when every forwarding path for the NLRI carries a valid
-   NEXT_HOP_MTU; the programmed value MUST be the minimum of those path
-   values.  Otherwise it MUST NOT program a promissory MTU for the
-   destination.
+
 
 
 
@@ -281,6 +281,26 @@ Mauch                     Expires 24 April 2027                 [Page 5]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
+
+3.4.  Use of the Value
+
+   Attaching NEXT_HOP_MTU promises that an IP packet destined to a
+   covered NLRI, of size less than or equal to the value, is acceptable
+   across the identified boundary (the interface permits it and the
+   speaker will forward it).  Applications MAY use the value when
+   sending toward the NLRI across that boundary.  A value greater than
+   or equal to 65576 is a jumbogram-capable promise and is useful only
+   where the sender and the boundary support the Jumbo Payload option
+   ([RFC2675]).  NEXT_HOP_MTU MUST NOT by itself change the BGP Decision
+   Process ([RFC4271]).  Path MTU Discovery and IPv6 Packet Too Big
+   handling remain required for the minimum MTU of a full path
+   ([RFC8201], [RFC1191]).
+
+   A speaker MAY program the value as a per-destination forwarding MTU
+   only when every forwarding path for the NLRI carries a valid
+   NEXT_HOP_MTU; the programmed value MUST be the minimum of those path
+   values.  Otherwise it MUST NOT program a promissory MTU for the
+   destination.
 
    When aggregating, a speaker MAY attach NEXT_HOP_MTU only if every
    included component has a valid value; the aggregate value MUST be the
@@ -299,6 +319,24 @@ Internet-Draft              BGP Next Hop MTU                October 2026
    Router B adds NEXT_HOP_MTU with value 9000 (0x00002328) and
    advertises it to Router C over iBGP.  The same receive-and-attach
    procedure applies in the reverse direction.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 6]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
 
         AS 65000                         AS 65001
 
@@ -327,17 +365,6 @@ Internet-Draft              BGP Next Hop MTU                October 2026
    Router C, NEXT_HOP_MTU remains 9000 because traffic still crosses the
    same boundary.
 
-
-
-
-
-
-
-Mauch                     Expires 24 April 2027                 [Page 6]
-
-Internet-Draft              BGP Next Hop MTU                October 2026
-
-
 5.  Error Handling
 
    A NEXT_HOP_MTU attribute is malformed if it appears more than once in
@@ -353,14 +380,28 @@ Internet-Draft              BGP Next Hop MTU                October 2026
    than IPv4 or IPv6 unicast.  In those cases the speaker treats the
    UPDATE as if the attribute were absent.
 
+
+
+
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 7]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
 6.  Operational Considerations
 
    Enable attachment toward the neighbors that should receive the
    promise, with the boundary interface MTU configured accordingly.  If
    a received value is accepted, the propagated value is min(local
    boundary MTU, received value).  This document makes no changes to
-   IPv6 Packet Too Big ([RFC8201]) or IPv4 Path MTU Discovery
-   ([RFC1191]) behavior.
+   IPv6 Packet Too Big ([RFC8201]), IPv4 Path MTU Discovery ([RFC1191]),
+   or Packetization Layer Path MTU Discovery ([RFC4821]) behavior.
 
 7.  IANA Considerations
 
@@ -387,13 +428,6 @@ Internet-Draft              BGP Next Hop MTU                October 2026
    propagate an understated promise; operators SHOULD accept received
    values from external peers only when those peers are trusted.
 
-
-
-Mauch                     Expires 24 April 2027                 [Page 7]
-
-Internet-Draft              BGP Next Hop MTU                October 2026
-
-
 9.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
@@ -405,6 +439,16 @@ Internet-Draft              BGP Next Hop MTU                October 2026
               Border Gateway Protocol 4 (BGP-4)", RFC 4271,
               DOI 10.17487/RFC4271, January 2006,
               <https://www.rfc-editor.org/info/rfc4271>.
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 8]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
 
    [RFC4760]  Bates, T., Chandra, R., Katz, D., and Y. Rekhter,
               "Multiprotocol Extensions for BGP-4", RFC 4760,
@@ -442,14 +486,6 @@ Internet-Draft              BGP Next Hop MTU                October 2026
               DOI 10.17487/RFC1191, November 1990,
               <https://www.rfc-editor.org/info/rfc1191>.
 
-
-
-
-Mauch                     Expires 24 April 2027                 [Page 8]
-
-Internet-Draft              BGP Next Hop MTU                October 2026
-
-
    [RFC2675]  Borman, D., Deering, S., and R. Hinden, "IPv6 Jumbograms",
               RFC 2675, DOI 10.17487/RFC2675, August 1999,
               <https://www.rfc-editor.org/info/rfc2675>.
@@ -462,6 +498,13 @@ Internet-Draft              BGP Next Hop MTU                October 2026
    [RFC4821]  Mathis, M. and J. Heffner, "Packetization Layer Path MTU
               Discovery", RFC 4821, DOI 10.17487/RFC4821, March 2007,
               <https://www.rfc-editor.org/info/rfc4821>.
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 9]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
 
    [RFC8201]  McCann, J., Deering, S., Mogul, J., and R. Hinden, Ed.,
               "Path MTU Discovery for IP version 6", STD 87, RFC 8201,
@@ -501,4 +544,17 @@ Author's Address
 
 
 
-Mauch                     Expires 24 April 2027                 [Page 9]
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                [Page 10]

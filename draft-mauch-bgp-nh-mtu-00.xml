@@ -146,12 +146,24 @@
         <t>
           IP MTU is an unsigned 32-bit integer in network byte order:
           the maximum acceptable IP packet size across the network
-          boundary for the NLRI.  For IPv4 NLRI the value MUST be in
-          the range 68 to 65535 inclusive (<xref target="RFC791"/>).
-          For IPv6 NLRI the value MUST be in the range 1280 to
-          4294967295 inclusive (<xref target="RFC8200"/>).  Values
-          greater than 65535 are for IPv6 jumbograms
-          (<xref target="RFC2675"/>).
+          boundary for the NLRI (IPv6 header and payload included;
+          see <xref target="RFC8200"/>).  This is a link / IP MTU, not
+          the Jumbo Payload Length field of
+          <xref target="RFC2675"/>.
+        </t>
+        <t>
+          For IPv4 NLRI the value MUST be in the range 68 to 65535
+          inclusive (<xref target="RFC791"/>).  For IPv6 NLRI the
+          value MUST be in the range 1280 to 4294967295 inclusive.
+          Without the Jumbo Payload option, the largest IPv6 packet
+          is 65575 octets (40-octet IPv6 header plus a Payload Length
+          of 65535).  Values from 1280 to 65575 inclusive are
+          therefore ordinary IPv6 IP MTUs.  Values greater than or
+          equal to 65576 indicate a jumbogram-capable boundary:
+          <xref target="RFC2675"/> requires a link MTU greater than
+          65575 before jumbograms can be sent, and such a promise is
+          useful only where nodes will send and receive the Jumbo
+          Payload option.
         </t>
       </section>
     </section>
@@ -259,8 +271,14 @@
           acceptable across the identified boundary (the interface
           permits it and the speaker will forward it).  Applications
           MAY use the value when sending toward the NLRI across that
-          boundary.  Path MTU Discovery remains required for the
-          minimum MTU of a full path.
+          boundary.  A value greater than or equal to 65576 is a
+          jumbogram-capable promise and is useful only where the
+          sender and the boundary support the Jumbo Payload option
+          (<xref target="RFC2675"/>).  NEXT_HOP_MTU MUST NOT by itself
+          change the BGP Decision Process (<xref target="RFC4271"/>).
+          Path MTU Discovery and IPv6 Packet Too Big handling remain
+          required for the minimum MTU of a full path
+          (<xref target="RFC8201"/>, <xref target="RFC1191"/>).
         </t>
         <t>
           A speaker MAY program the value as a per-destination
@@ -355,8 +373,9 @@
         accordingly.  If a received value is accepted, the propagated
         value is min(local boundary MTU, received value).  This
         document makes no changes to IPv6 Packet Too Big
-        (<xref target="RFC8201"/>) or IPv4 Path MTU Discovery
-        (<xref target="RFC1191"/>) behavior.
+        (<xref target="RFC8201"/>), IPv4 Path MTU Discovery
+        (<xref target="RFC1191"/>), or Packetization Layer Path MTU
+        Discovery (<xref target="RFC4821"/>) behavior.
       </t>
     </section>
 
