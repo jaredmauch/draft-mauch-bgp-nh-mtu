@@ -32,7 +32,10 @@
         speaker promises is acceptable for an NLRI across one network
         boundary.  The speaker that receives the NLRI across that
         boundary may attach the attribute from the boundary interface
-        MTU and advertise it on internal and external sessions.
+        MTU and advertise it on internal and external sessions.  The
+        intent is to communicate network MTU capability so that
+        devices can use that information to improve the efficiency of
+        their communications.
       </t>
     </abstract>
 
@@ -119,7 +122,7 @@
         </t>
         <figure anchor="fig-format">
           <name>NEXT_HOP_MTU encoding</name>
-          <artwork type="ascii-art" align="left"><![CDATA[
+          <artwork type="ascii-art" align="center"><![CDATA[
  0                   1                   2
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -231,8 +234,8 @@
           value MUST be the minimum of the two (then reduced by local
           policy if applicable).  A speaker MUST NOT copy a promise
           for one boundary onto a different boundary without that
-          minimum.  If the value cannot be determined, omit the
-          attribute.
+          minimum.  If the value cannot be determined, the attribute
+          MAY be omitted.
         </t>
         <t>
           An originating speaker MAY attach NEXT_HOP_MTU using the IP
@@ -321,14 +324,21 @@
     <section anchor="sec-errors">
       <name>Error Handling</name>
       <t>
-        Malformed NEXT_HOP_MTU attributes use attribute discard
-        (<xref target="RFC7606"/>): discard the attribute, process the
-        UPDATE as if it were absent, and MUST NOT session-reset or
-        treat the NLRI as withdrawn.  Discard when any of the
-        following holds: the attribute appears more than once; the
-        length is not 4; flags are not exactly 0x80; the value is 0;
-        IPv4 NLRI with value outside 68..65535; IPv6 NLRI with value
-        less than 1280; or AFI/SAFI other than IPv4/IPv6 unicast.
+        A NEXT_HOP_MTU attribute is malformed if it appears more than
+        once in the UPDATE, its length is not 4, or its flags are not
+        exactly 0x80.  Malformed NEXT_HOP_MTU attributes use attribute
+        discard (<xref target="RFC7606"/>): discard the attribute,
+        process the UPDATE as if it were absent, and MUST NOT
+        session-reset or treat the NLRI as withdrawn.
+      </t>
+      <t>
+        A speaker MUST NOT use a NEXT_HOP_MTU value as a promissory MTU
+        when the value is 0, when the UPDATE carries IPv4 NLRI and the
+        value is outside 68..65535, when the UPDATE carries IPv6 NLRI
+        and the value is less than 1280, or when the UPDATE carries
+        NLRI for an AFI/SAFI other than IPv4 or IPv6 unicast.  In those
+        cases the speaker treats the UPDATE as if the attribute were
+        absent.
       </t>
     </section>
 
@@ -338,9 +348,10 @@
         Enable attachment toward the neighbors that should receive the
         promise, with the boundary interface MTU configured
         accordingly.  If a received value is accepted, the propagated
-        value is min(local boundary MTU, received value).  Path MTU
-        Discovery and TCP MSS clamping still apply beyond that
-        boundary.
+        value is min(local boundary MTU, received value).  This
+        document makes no changes to IPv6 Packet Too Big
+        (<xref target="RFC8201"/>) or IPv4 Path MTU Discovery
+        (<xref target="RFC1191"/>) behavior.
       </t>
     </section>
 
@@ -381,15 +392,7 @@
         Accepting a received value can only reduce the attached value
         (via the minimum) but can propagate an understated promise;
         operators SHOULD accept received values from external peers
-        only when those peers are trusted.  Advertising the attribute
-        reveals a boundary MTU; attachment can be disabled per
-        neighbor if that is sensitive.
-      </t>
-      <t>
-        This document adds no session authentication; see
-        <xref target="RFC7454"/>.  Malformed attributes are discarded
-        without resetting the session or withdrawing NLRI
-        (<xref target="sec-errors"/>).
+        only when those peers are trusted.
       </t>
     </section>
   </middle>
@@ -411,7 +414,7 @@
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.2675.xml"/>
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.4456.xml"/>
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.4821.xml"/>
-      <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7454.xml"/>
+    
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8201.xml"/>
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9552.xml"/>
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-idr-bgp-ls-link-mtu.xml"/>

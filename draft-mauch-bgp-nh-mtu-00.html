@@ -13,7 +13,10 @@
         speaker promises is acceptable for an NLRI across one network
         boundary.  The speaker that receives the NLRI across that
         boundary may attach the attribute from the boundary interface
-        MTU and advertise it on internal and external sessions.
+        MTU and advertise it on internal and external sessions.  The
+        intent is to communicate network MTU capability so that
+        devices can use that information to improve the efficiency of
+        their communications.
        
     " name="description">
 <meta content="xml2rfc 3.23.0" name="generator">
@@ -1260,7 +1263,10 @@ li > p:last-of-type:only-child {
         speaker promises is acceptable for an NLRI across one network
         boundary.  The speaker that receives the NLRI across that
         boundary may attach the attribute from the boundary interface
-        MTU and advertise it on internal and external sessions.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+        MTU and advertise it on internal and external sessions.  The
+        intent is to communicate network MTU capability so that
+        devices can use that information to improve the efficiency of
+        their communications.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -1457,7 +1463,7 @@ li > p:last-of-type:only-child {
           The Extended Length bit is clear.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
 <span id="name-next_hop_mtu-encoding"></span><div id="fig-format">
 <figure id="figure-1">
-          <div class="alignLeft art-ascii-art art-text artwork" id="section-2.1-2.1">
+          <div class="alignCenter art-ascii-art art-text artwork" id="section-2.1-2.1">
 <pre>
  0                   1                   2
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
@@ -1578,8 +1584,8 @@ li > p:last-of-type:only-child {
           value MUST be the minimum of the two (then reduced by local
           policy if applicable).  A speaker MUST NOT copy a promise
           for one boundary onto a different boundary without that
-          minimum.  If the value cannot be determined, omit the
-          attribute.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+          minimum.  If the value cannot be determined, the attribute
+          MAY be omitted.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 <p id="section-3.3-4">
           An originating speaker MAY attach NEXT_HOP_MTU using the IP
           MTU of the boundary it advertises across, subject to
@@ -1675,14 +1681,20 @@ li > p:last-of-type:only-child {
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
       </h2>
 <p id="section-5-1">
-        Malformed NEXT_HOP_MTU attributes use attribute discard
-        (<span>[<a href="#RFC7606" class="cite xref">RFC7606</a>]</span>): discard the attribute, process the
-        UPDATE as if it were absent, and MUST NOT session-reset or
-        treat the NLRI as withdrawn.  Discard when any of the
-        following holds: the attribute appears more than once; the
-        length is not 4; flags are not exactly 0x80; the value is 0;
-        IPv4 NLRI with value outside 68..65535; IPv6 NLRI with value
-        less than 1280; or AFI/SAFI other than IPv4/IPv6 unicast.<a href="#section-5-1" class="pilcrow">¶</a></p>
+        A NEXT_HOP_MTU attribute is malformed if it appears more than
+        once in the UPDATE, its length is not 4, or its flags are not
+        exactly 0x80.  Malformed NEXT_HOP_MTU attributes use attribute
+        discard (<span>[<a href="#RFC7606" class="cite xref">RFC7606</a>]</span>): discard the attribute,
+        process the UPDATE as if it were absent, and MUST NOT
+        session-reset or treat the NLRI as withdrawn.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">
+        A speaker MUST NOT use a NEXT_HOP_MTU value as a promissory MTU
+        when the value is 0, when the UPDATE carries IPv4 NLRI and the
+        value is outside 68..65535, when the UPDATE carries IPv6 NLRI
+        and the value is less than 1280, or when the UPDATE carries
+        NLRI for an AFI/SAFI other than IPv4 or IPv6 unicast.  In those
+        cases the speaker treats the UPDATE as if the attribute were
+        absent.<a href="#section-5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-operational">
@@ -1694,9 +1706,10 @@ li > p:last-of-type:only-child {
         Enable attachment toward the neighbors that should receive the
         promise, with the boundary interface MTU configured
         accordingly.  If a received value is accepted, the propagated
-        value is min(local boundary MTU, received value).  Path MTU
-        Discovery and TCP MSS clamping still apply beyond that
-        boundary.<a href="#section-6-1" class="pilcrow">¶</a></p>
+        value is min(local boundary MTU, received value).  This
+        document makes no changes to IPv6 Packet Too Big
+        (<span>[<a href="#RFC8201" class="cite xref">RFC8201</a>]</span>) or IPv4 Path MTU Discovery
+        (<span>[<a href="#RFC1191" class="cite xref">RFC1191</a>]</span>) behavior.<a href="#section-6-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-iana">
@@ -1746,14 +1759,7 @@ li > p:last-of-type:only-child {
         Accepting a received value can only reduce the attached value
         (via the minimum) but can propagate an understated promise;
         operators SHOULD accept received values from external peers
-        only when those peers are trusted.  Advertising the attribute
-        reveals a boundary MTU; attachment can be disabled per
-        neighbor if that is sensitive.<a href="#section-8-1" class="pilcrow">¶</a></p>
-<p id="section-8-2">
-        This document adds no session authentication; see
-        <span>[<a href="#RFC7454" class="cite xref">RFC7454</a>]</span>.  Malformed attributes are discarded
-        without resetting the session or withdrawing NLRI
-        (<a href="#sec-errors" class="auto internal xref">Section 5</a>).<a href="#section-8-2" class="pilcrow">¶</a></p>
+        only when those peers are trusted.<a href="#section-8-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <section id="section-9">
@@ -1815,10 +1821,6 @@ li > p:last-of-type:only-child {
 <dt id="RFC4821">[RFC4821]</dt>
       <dd>
 <span class="refAuthor">Mathis, M.</span> and <span class="refAuthor">J. Heffner</span>, <span class="refTitle">"Packetization Layer Path MTU Discovery"</span>, <span class="seriesInfo">RFC 4821</span>, <span class="seriesInfo">DOI 10.17487/RFC4821</span>, <time datetime="2007-03" class="refDate">March 2007</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc4821">https://www.rfc-editor.org/info/rfc4821</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC7454">[RFC7454]</dt>
-      <dd>
-<span class="refAuthor">Durand, J.</span>, <span class="refAuthor">Pepelnjak, I.</span>, and <span class="refAuthor">G. Doering</span>, <span class="refTitle">"BGP Operations and Security"</span>, <span class="seriesInfo">BCP 194</span>, <span class="seriesInfo">RFC 7454</span>, <span class="seriesInfo">DOI 10.17487/RFC7454</span>, <time datetime="2015-02" class="refDate">February 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7454">https://www.rfc-editor.org/info/rfc7454</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8201">[RFC8201]</dt>
       <dd>
