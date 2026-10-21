@@ -407,6 +407,31 @@
       </table>
     </section>
 
+    <section anchor="sec-adjacent" removeInRFC="true">
+      <name>Notes on Adjacent Work</name>
+      <t>
+        This note records adjacent work encountered while preparing
+        this document.  It is not normative.
+      </t>
+      <t>
+        <xref target="I-D.blahaj-idr-bgp-mtu"/> proposes signalling
+        Path MTU via a BGP capability and an optional non-transitive
+        Path MTU path attribute.  That work accumulates a path-scoped
+        MTU along the route and uses a narrower value field.  This
+        document instead attaches a promissory IP MTU for one network
+        boundary to an ordinary unicast NLRI and does not define a
+        path-minimum attribute.  An editor's copy is available at
+        <eref target="https://theenbyperor.github.io/draft-blahaj-idr-bgp-mtu/draft-blahaj-idr-bgp-mtu.html"/>.
+      </t>
+      <t>
+        <xref target="I-D.ietf-idr-bgp-ls-link-mtu"/> carries a
+        per-link MTU in BGP-LS (IANA TLV 1104).  That is topology
+        input for controllers, not a path attribute on IPv4/IPv6
+        unicast routes.  The BGP-LS value is two octets and therefore
+        cannot represent jumbogram-sized IP MTUs.
+      </t>
+    </section>
+
     <section anchor="sec-security">
       <name>Security Considerations</name>
       <t>
@@ -441,6 +466,17 @@
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8201.xml"/>
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9552.xml"/>
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-idr-bgp-ls-link-mtu.xml"/>
+      <reference anchor="I-D.blahaj-idr-bgp-mtu"
+                 target="https://theenbyperor.github.io/draft-blahaj-idr-bgp-mtu/draft-blahaj-idr-bgp-mtu.html">
+        <front>
+          <title>Signalling Path MTU via BGP Attributes</title>
+          <author fullname="Q. Misell" initials="Q." surname="Misell">
+            <organization/>
+          </author>
+          <date year="2024" month="December"/>
+        </front>
+        <seriesInfo name="Internet-Draft" value="draft-blahaj-idr-bgp-mtu"/>
+      </reference>
     </references>
   </back>
 </rfc>

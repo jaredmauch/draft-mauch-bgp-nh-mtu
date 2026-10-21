@@ -87,9 +87,10 @@ Table of Contents
    5.  Error Handling  . . . . . . . . . . . . . . . . . . . . . . .   7
    6.  Operational Considerations  . . . . . . . . . . . . . . . . .   8
    7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   8
-   8.  Security Considerations . . . . . . . . . . . . . . . . . . .   8
-   9.  Normative References  . . . . . . . . . . . . . . . . . . . .   8
-   10. Informative References  . . . . . . . . . . . . . . . . . . .   9
+   8.  Notes on Adjacent Work  . . . . . . . . . . . . . . . . . . .   8
+   9.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
+   10. Normative References  . . . . . . . . . . . . . . . . . . . .   9
+   11. Informative References  . . . . . . . . . . . . . . . . . . .   9
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  10
 
 1.  Introduction
@@ -103,9 +104,8 @@ Table of Contents
    impacts of Path MTU Discovery ([RFC1191], [RFC4821]) and IPv6 Packet
    Too Big handling ([RFC8201]).
 
-   NEXT_HOP_MTU is an optional, non-transitive path attribute.  The
-   speaker that receives an NLRI across a network boundary may attach a
-   32-bit IP MTU for that boundary and advertise it with the route.  The
+
+
 
 
 
@@ -114,6 +114,9 @@ Mauch                     Expires 24 April 2027                 [Page 2]
 Internet-Draft              BGP Next Hop MTU                October 2026
 
 
+   NEXT_HOP_MTU is an optional, non-transitive path attribute.  The
+   speaker that receives an NLRI across a network boundary may attach a
+   32-bit IP MTU for that boundary and advertise it with the route.  The
    value is a promise that an IP packet of that size, destined to the
    NLRI, is acceptable across that boundary.  It is not a Path MTU
    ([RFC8201], [RFC1191], [RFC4821]).  BGP-LS can carry per-link MTU in
@@ -159,9 +162,6 @@ Internet-Draft              BGP Next Hop MTU                October 2026
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
                       Figure 1: NEXT_HOP_MTU encoding
-
-
-
 
 
 
@@ -419,26 +419,26 @@ Internet-Draft              BGP Next Hop MTU                October 2026
                        Table 1: BGP Path Attributes
                             registry addition
 
-8.  Security Considerations
+8.  Notes on Adjacent Work
 
-   An overstated value can cause packet loss; an understated value
-   reduces efficiency.  Deriving the attached value from the local
-   interface MTU limits overstatement by a peer.  Accepting a received
-   value can only reduce the attached value (via the minimum) but can
-   propagate an understated promise; operators SHOULD accept received
-   values from external peers only when those peers are trusted.
+   This section is to be removed before publishing as an RFC.
 
-9.  Normative References
+   This note records adjacent work encountered while preparing this
+   document.  It is not normative.
 
-   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", BCP 14, RFC 2119,
-              DOI 10.17487/RFC2119, March 1997,
-              <https://www.rfc-editor.org/info/rfc2119>.
+   [I-D.blahaj-idr-bgp-mtu] proposes signalling Path MTU via a BGP
+   capability and an optional non-transitive Path MTU path attribute.
+   That work accumulates a path-scoped MTU along the route and uses a
+   narrower value field.  This document instead attaches a promissory IP
+   MTU for one network boundary to an ordinary unicast NLRI and does not
+   define a path-minimum attribute.  An editor's copy is available at
+   https://theenbyperor.github.io/draft-blahaj-idr-bgp-mtu/draft-blahaj-
+   idr-bgp-mtu.html.
 
-   [RFC4271]  Rekhter, Y., Ed., Li, T., Ed., and S. Hares, Ed., "A
-              Border Gateway Protocol 4 (BGP-4)", RFC 4271,
-              DOI 10.17487/RFC4271, January 2006,
-              <https://www.rfc-editor.org/info/rfc4271>.
+   [I-D.ietf-idr-bgp-ls-link-mtu] carries a per-link MTU in BGP-LS (IANA
+   TLV 1104).  That is topology input for controllers, not a path
+   attribute on IPv4/IPv6 unicast routes.  The BGP-LS value is two
+   octets and therefore cannot represent jumbogram-sized IP MTUs.
 
 
 
@@ -449,6 +449,27 @@ Mauch                     Expires 24 April 2027                 [Page 8]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
+
+9.  Security Considerations
+
+   An overstated value can cause packet loss; an understated value
+   reduces efficiency.  Deriving the attached value from the local
+   interface MTU limits overstatement by a peer.  Accepting a received
+   value can only reduce the attached value (via the minimum) but can
+   propagate an understated promise; operators SHOULD accept received
+   values from external peers only when those peers are trusted.
+
+10.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC4271]  Rekhter, Y., Ed., Li, T., Ed., and S. Hares, Ed., "A
+              Border Gateway Protocol 4 (BGP-4)", RFC 4271,
+              DOI 10.17487/RFC4271, January 2006,
+              <https://www.rfc-editor.org/info/rfc4271>.
 
    [RFC4760]  Bates, T., Chandra, R., Katz, D., and Y. Rekhter,
               "Multiprotocol Extensions for BGP-4", RFC 4760,
@@ -473,7 +494,23 @@ Internet-Draft              BGP Next Hop MTU                October 2026
               DOI 10.17487/RFC8200, July 2017,
               <https://www.rfc-editor.org/info/rfc8200>.
 
-10.  Informative References
+11.  Informative References
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 9]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+   [I-D.blahaj-idr-bgp-mtu]
+              Misell, Q., "Signalling Path MTU via BGP Attributes", Work
+              in Progress, Internet-Draft, draft-blahaj-idr-bgp-mtu,
+              December 2024, <https://theenbyperor.github.io/draft-
+              blahaj-idr-bgp-mtu/draft-blahaj-idr-bgp-mtu.html>.
 
    [I-D.ietf-idr-bgp-ls-link-mtu]
               Zhu, Y., Hu, Z., Peng, S., and R. Mwehair, "Signaling
@@ -499,13 +536,6 @@ Internet-Draft              BGP Next Hop MTU                October 2026
               Discovery", RFC 4821, DOI 10.17487/RFC4821, March 2007,
               <https://www.rfc-editor.org/info/rfc4821>.
 
-
-
-Mauch                     Expires 24 April 2027                 [Page 9]
-
-Internet-Draft              BGP Next Hop MTU                October 2026
-
-
    [RFC8201]  McCann, J., Deering, S., Mogul, J., and R. Hinden, Ed.,
               "Path MTU Discovery for IP version 6", STD 87, RFC 8201,
               DOI 10.17487/RFC8201, July 2017,
@@ -521,36 +551,6 @@ Author's Address
    Jared Mauch
    Akamai
    Email: jared@akamai.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
