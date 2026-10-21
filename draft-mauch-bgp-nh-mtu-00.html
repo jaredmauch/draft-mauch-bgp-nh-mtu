@@ -1434,7 +1434,7 @@ li > p:last-of-type:only-child {
           "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT
           RECOMMENDED", "MAY", and "OPTIONAL" in this document are to
           be interpreted as described in BCP 14
-          <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span>
+          <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span>, <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span>
           when, and only when, they appear in all capitals, as shown
           here.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
 </section>
@@ -1467,7 +1467,7 @@ li > p:last-of-type:only-child {
           The Extended Length bit is clear.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
 <span id="name-next_hop_mtu-encoding"></span><div id="fig-format">
 <figure id="figure-1">
-          <div class="alignCenter art-ascii-art art-text artwork" id="section-2.1-2.1">
+          <div class="alignLeft art-ascii-art art-text artwork" id="section-2.1-2.1">
 <pre>
  0                   1                   2
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
@@ -1494,8 +1494,8 @@ li > p:last-of-type:only-child {
           boundary for the NLRI.  For IPv4 NLRI the value MUST be in
           the range 68 to 65535 inclusive (<span>[<a href="#RFC791" class="cite xref">RFC791</a>]</span>).
           For IPv6 NLRI the value MUST be in the range 1280 to
-          4294967295 inclusive (<span>[<a href="#RFC8200" class="cite xref">RFC8200</a>]</span>);
-          values greater than 65535 are for IPv6 jumbograms
+          4294967295 inclusive (<span>[<a href="#RFC8200" class="cite xref">RFC8200</a>]</span>).  Values
+          greater than 65535 are for IPv6 jumbograms
           (<span>[<a href="#RFC2675" class="cite xref">RFC2675</a>]</span>).<a href="#section-2.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1543,7 +1543,8 @@ li > p:last-of-type:only-child {
           <li id="section-3.2-2.1">
             Let L be the boundary IP MTU.  If L cannot be determined,
             or is outside the range in <a href="#sec-encoding" class="auto internal xref">Section 2.1</a>
-            for the address family, MUST NOT attach the attribute.<a href="#section-3.2-2.1" class="pilcrow">¶</a>
+            for the address family, the speaker MUST NOT attach the
+            attribute.<a href="#section-3.2-2.1" class="pilcrow">¶</a>
 </li>
           <li id="section-3.2-2.2">
             If the received route has a valid NEXT_HOP_MTU value R and

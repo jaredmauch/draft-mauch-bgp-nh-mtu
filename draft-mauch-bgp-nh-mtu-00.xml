@@ -95,7 +95,7 @@
           "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT
           RECOMMENDED", "MAY", and "OPTIONAL" in this document are to
           be interpreted as described in BCP 14
-          <xref target="RFC2119"/> <xref target="RFC8174"/>
+          <xref target="RFC2119"/>, <xref target="RFC8174"/>
           when, and only when, they appear in all capitals, as shown
           here.
         </t>
@@ -126,7 +126,7 @@
         </t>
         <figure anchor="fig-format">
           <name>NEXT_HOP_MTU encoding</name>
-          <artwork type="ascii-art" align="center"><![CDATA[
+          <artwork type="ascii-art" align="left"><![CDATA[
  0                   1                   2
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -149,8 +149,8 @@
           boundary for the NLRI.  For IPv4 NLRI the value MUST be in
           the range 68 to 65535 inclusive (<xref target="RFC791"/>).
           For IPv6 NLRI the value MUST be in the range 1280 to
-          4294967295 inclusive (<xref target="RFC8200"/>);
-          values greater than 65535 are for IPv6 jumbograms
+          4294967295 inclusive (<xref target="RFC8200"/>).  Values
+          greater than 65535 are for IPv6 jumbograms
           (<xref target="RFC2675"/>).
         </t>
       </section>
@@ -193,7 +193,8 @@
           <li>
             Let L be the boundary IP MTU.  If L cannot be determined,
             or is outside the range in <xref target="sec-encoding"/>
-            for the address family, MUST NOT attach the attribute.
+            for the address family, the speaker MUST NOT attach the
+            attribute.
           </li>
           <li>
             If the received route has a valid NEXT_HOP_MTU value R and
@@ -418,7 +419,6 @@
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.2675.xml"/>
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.4456.xml"/>
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.4821.xml"/>
-    
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8201.xml"/>
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9552.xml"/>
       <xi:include href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-idr-bgp-ls-link-mtu.xml"/>
