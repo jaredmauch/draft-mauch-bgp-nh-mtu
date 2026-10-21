@@ -1399,7 +1399,11 @@ li > p:last-of-type:only-child {
         packets larger than 1500 octets (for example, 9000).  Internal
         hosts and routers can use that size only if they learn it.
         BGP advertises the NLRI but has no way to carry the boundary
-        IP MTU with the route.<a href="#section-1-1" class="pilcrow">¶</a></p>
+        IP MTU with the route.  Extending the path attributes carried
+        with the NLRI to pass that network-boundary information is
+        useful to mitigate the negative impacts of Path MTU Discovery
+        (<span>[<a href="#RFC1191" class="cite xref">RFC1191</a>]</span>, <span>[<a href="#RFC4821" class="cite xref">RFC4821</a>]</span>) and IPv6
+        Packet Too Big handling (<span>[<a href="#RFC8201" class="cite xref">RFC8201</a>]</span>).<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">
         NEXT_HOP_MTU is an optional, non-transitive path attribute.
         The speaker that receives an NLRI across a network boundary

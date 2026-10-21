@@ -98,14 +98,14 @@ Table of Contents
    larger than 1500 octets (for example, 9000).  Internal hosts and
    routers can use that size only if they learn it.  BGP advertises the
    NLRI but has no way to carry the boundary IP MTU with the route.
+   Extending the path attributes carried with the NLRI to pass that
+   network-boundary information is useful to mitigate the negative
+   impacts of Path MTU Discovery ([RFC1191], [RFC4821]) and IPv6 Packet
+   Too Big handling ([RFC8201]).
 
-
-
-
-
-
-
-
+   NEXT_HOP_MTU is an optional, non-transitive path attribute.  The
+   speaker that receives an NLRI across a network boundary may attach a
+   32-bit IP MTU for that boundary and advertise it with the route.  The
 
 
 
@@ -114,9 +114,6 @@ Mauch                     Expires 24 April 2027                 [Page 2]
 Internet-Draft              BGP Next Hop MTU                October 2026
 
 
-   NEXT_HOP_MTU is an optional, non-transitive path attribute.  The
-   speaker that receives an NLRI across a network boundary may attach a
-   32-bit IP MTU for that boundary and advertise it with the route.  The
    value is a promise that an IP packet of that size, destined to the
    NLRI, is acceptable across that boundary.  It is not a Path MTU
    ([RFC8201], [RFC1191], [RFC4821]).  BGP-LS can carry per-link MTU in
@@ -162,6 +159,9 @@ Internet-Draft              BGP Next Hop MTU                October 2026
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
                       Figure 1: NEXT_HOP_MTU encoding
+
+
+
 
 
 
