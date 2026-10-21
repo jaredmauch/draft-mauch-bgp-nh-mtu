@@ -1602,25 +1602,21 @@ li > p:last-of-type:only-child {
           boundary.  Path MTU Discovery remains required for the
           minimum MTU of a full path.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 <p id="section-3.4-2">
-          NEXT_HOP_MTU MUST NOT by itself change the BGP Decision
-          Process (<span>[<a href="#RFC4271" class="cite xref">RFC4271</a>]</span>).  Local policy MAY
-          consider it when selecting routes.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
-<p id="section-3.4-3">
           A speaker MAY program the value as a per-destination
           forwarding MTU only when every forwarding path for the NLRI
           carries a valid NEXT_HOP_MTU; the programmed value MUST be
           the minimum of those path values.  Otherwise it MUST NOT
-          program a promissory MTU for the destination.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
-<p id="section-3.4-4">
+          program a promissory MTU for the destination.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+<p id="section-3.4-3">
           When aggregating, a speaker MAY attach NEXT_HOP_MTU only if
           every included component has a valid value; the aggregate
           value MUST be the minimum of the component values.
-          Otherwise omit the attribute from the aggregate.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
-<p id="section-3.4-5">
+          Otherwise omit the attribute from the aggregate.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
+<p id="section-3.4-4">
           When the boundary IP MTU changes, the speaker that attached
           NEXT_HOP_MTU from that boundary MUST advertise a replacement
           route for each affected NLRI with the new value (or omit the
-          attribute if it no longer makes a promise).<a href="#section-3.4-5" class="pilcrow">¶</a></p>
+          attribute if it no longer makes a promise).<a href="#section-3.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

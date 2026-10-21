@@ -255,11 +255,6 @@
           minimum MTU of a full path.
         </t>
         <t>
-          NEXT_HOP_MTU MUST NOT by itself change the BGP Decision
-          Process (<xref target="RFC4271"/>).  Local policy MAY
-          consider it when selecting routes.
-        </t>
-        <t>
           A speaker MAY program the value as a per-destination
           forwarding MTU only when every forwarding path for the NLRI
           carries a valid NEXT_HOP_MTU; the programmed value MUST be
