@@ -1,0 +1,896 @@
+
+
+
+
+Network Working Group                                           J. Mauch
+Internet-Draft                                                    Akamai
+Intended status: Standards Track                         21 October 2026
+Expires: 24 April 2027
+
+
+                       BGP Next Hop MTU Attribute
+                       draft-mauch-bgp-nh-mtu-00
+
+Abstract
+
+   This document defines an optional, non-transitive BGP path attribute,
+   NEXT_HOP_MTU, whose type code is TBD.  The attribute carries the IP
+   MTU available for a BGP NLRI across a network boundary.  The BGP
+   speaker that receives the NLRI may add the attribute from the IP MTU
+   of that boundary.  The value is a promissory commitment that an IP
+   packet of the indicated size is acceptable across the boundary.
+   Applications on internal BGP sessions and on external BGP sessions
+   can use the value.
+
+Discussion Venues
+
+   This note is to be removed before publishing as an RFC.
+
+   This document is an individual submission intended for consideration
+   by the Inter-Domain Routing (IDR) Working Group.  Discussion takes
+   place on the IDR mailing list (idr@ietf.org), which is archived at
+   https://mailarchive.ietf.org/arch/browse/idr/.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 24 April 2027.
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 1]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+     1.1.  Requirements Language . . . . . . . . . . . . . . . . . .   3
+   2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  NEXT_HOP_MTU Attribute  . . . . . . . . . . . . . . . . . . .   4
+     3.1.  Attribute Header  . . . . . . . . . . . . . . . . . . . .   4
+     3.2.  IP MTU Value  . . . . . . . . . . . . . . . . . . . . . .   5
+   4.  Procedures  . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     4.1.  Network Boundary  . . . . . . . . . . . . . . . . . . . .   6
+     4.2.  Adding the Attribute on Receipt . . . . . . . . . . . . .   6
+     4.3.  Internal and External Sessions  . . . . . . . . . . . . .   7
+     4.4.  Promissory Semantics  . . . . . . . . . . . . . . . . . .   8
+     4.5.  Forwarding and Multiple Paths . . . . . . . . . . . . . .   8
+     4.6.  Aggregation . . . . . . . . . . . . . . . . . . . . . . .   9
+     4.7.  Changes of Interface MTU  . . . . . . . . . . . . . . . .   9
+   5.  Example . . . . . . . . . . . . . . . . . . . . . . . . . . .   9
+   6.  Error Handling  . . . . . . . . . . . . . . . . . . . . . . .  12
+   7.  Operational Considerations  . . . . . . . . . . . . . . . . .  12
+   8.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  13
+   9.  Security Considerations . . . . . . . . . . . . . . . . . . .  13
+   10. Normative References  . . . . . . . . . . . . . . . . . . . .  14
+   11. Informative References  . . . . . . . . . . . . . . . . . . .  15
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  16
+
+1.  Introduction
+
+   Networks often accept IP packets larger than the conventional
+   1500-octet Ethernet payload at a network boundary.  A common case is
+   an interface configured so that an IP packet of 9000 octets can cross
+   the boundary.  Hosts, tunnel endpoints, and other routers inside a
+   network can use that size when they know it.  They learn reachability
+   through BGP, but BGP itself has no way to carry the IP MTU of the
+   boundary with the route.
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 2]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+   This document defines the NEXT_HOP_MTU path attribute.  The attribute
+   is optional.  Its type code is assigned by IANA and is TBD in this
+   version of the document.  It is associated with the NLRI carried in
+   the same BGP UPDATE message.  The value is the IP MTU, in octets,
+   that the attaching speaker promises is acceptable for traffic toward
+   those NLRI across one network boundary.
+
+   The speaker that receives a route across the boundary is the speaker
+   that adds the attribute.  It uses the IP MTU of its interface on that
+   boundary.  It can then make the value available to internal peers
+   and, when it advertises the route onward, to external peers.  The
+   attribute describes that boundary.  It is a single promissory value
+   for the NLRI at that boundary.  A speaker replaces the value only
+   when Section 4 computes a new value for a different boundary.
+
+   Path MTU Discovery and Packetization Layer Path MTU Discovery remain
+   the mechanisms that find the minimum MTU of a whole path ([RFC8201],
+   [RFC1191], [RFC4821]).  BGP-LS can distribute the MTU of individual
+   links in a link-state topology ([RFC9552],
+   [I-D.ietf-idr-bgp-ls-link-mtu]).  NEXT_HOP_MTU gives a BGP speaker a
+   promissory IP MTU for an ordinary unicast NLRI at the network
+   boundary where the route was learned.
+
+1.1.  Requirements Language
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in BCP
+   14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+2.  Terminology
+
+   This document uses the BGP terminology of [RFC4271] and [RFC4760].
+
+   IP MTU  The size, in octets, of the largest IP packet that can cross
+      a link in one piece.  The IP packet includes the IP header and the
+      IP payload.  Link-layer headers are excluded.  This size is what
+      the network boundary promises is acceptable.  An interface that
+      permits an IP payload of 9000 octets has an IP MTU of 9000 for
+      this attribute.
+
+   Network boundary  The edge between two networks across which traffic
+      toward an NLRI is forwarded.  In the example in Section 5, the
+      network boundary is the link between AS 65000 and AS 65001.
+
+   Promissory value  A value the attaching BGP speaker includes as its
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 3]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+      promise that an IP packet of that size, destined to the NLRI, is
+      acceptable across the network boundary.
+
+   Internal session  A BGP session between speakers in the same
+      autonomous system (internal BGP).
+
+   External session  A BGP session between speakers in different
+      autonomous systems (external BGP).
+
+3.  NEXT_HOP_MTU Attribute
+
+   NEXT_HOP_MTU is an optional, non-transitive BGP path attribute.  The
+   attribute type code is TBD, to be assigned by IANA from the BGP Path
+   Attributes registry (Section 8).
+
+   The attribute applies to every NLRI in the UPDATE message that
+   carries it.  Those NLRI are the destinations for which the promissory
+   value holds.  IPv4 unicast NLRI use the encoding in [RFC4271].  IPv6
+   unicast NLRI, and IPv4 unicast NLRI carried as multiprotocol NLRI,
+   use MP_REACH_NLRI as specified in [RFC4760].  NEXT_HOP_MTU is a path
+   attribute alongside MP_REACH_NLRI.  It is not encoded inside the
+   NLRI.
+
+   This attribute is defined for IPv4 unicast (AFI 1, SAFI 1) and IPv6
+   unicast (AFI 2, SAFI 1).  A speaker MUST NOT attach NEXT_HOP_MTU to
+   an UPDATE for any other AFI or SAFI.  Use with other address families
+   is outside the scope of this document.
+
+3.1.  Attribute Header
+
+   The attribute header is the three-octet path-attribute header defined
+   in [RFC4271]: one octet of flags, one octet of type code, and one
+   octet of length.  The value field follows the header and is four
+   octets long, so the Extended Length bit is clear and the one-octet
+   length is sufficient.
+
+    0                   1                   2
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |     Flags     |  Type (TBD)   |  Length (4)   |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                            IP MTU                             |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                      Figure 1: NEXT_HOP_MTU encoding
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 4]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+   The flags octet MUST be 0x80 when a speaker attaches the attribute:
+   the Optional bit is 1, and the Transitive, Partial, Extended Length,
+   and reserved bits are 0.  Table 1 restates those bits.  Bit 0 is the
+   high-order bit.
+
+                     +=====+=================+=======+
+                     | Bit | Name            | Value |
+                     +=====+=================+=======+
+                     | 0   | Optional        | 1     |
+                     +-----+-----------------+-------+
+                     | 1   | Transitive      | 0     |
+                     +-----+-----------------+-------+
+                     | 2   | Partial         | 0     |
+                     +-----+-----------------+-------+
+                     | 3   | Extended Length | 0     |
+                     +-----+-----------------+-------+
+                     | 4-7 | Reserved        | 0     |
+                     +-----+-----------------+-------+
+
+                        Table 1: Attribute flag bits
+
+   The type code is TBD (one octet).  The length is 4.  A speaker that
+   does not recognize the type code follows the optional non-transitive
+   rules in [RFC4271]: it ignores the attribute and does not propagate
+   it.
+
+3.2.  IP MTU Value
+
+   The IP MTU field is an unsigned 32-bit integer in network byte order.
+   It is the maximum IP packet size, in octets, that the attaching
+   speaker promises is acceptable across the network boundary for the
+   NLRI in the UPDATE.  The size includes the IP header and the IP
+   payload and excludes link-layer framing.
+
+   For IPv4 NLRI the value MUST be greater than or equal to 68 and less
+   than or equal to 65535.  68 octets is the smallest IP datagram every
+   internet module must be able to forward without further fragmentation
+   ([RFC791]).  65535 octets is the largest value that fits in the IPv4
+   Total Length field.  For IPv6 NLRI the value MUST be greater than or
+   equal to 1280 and less than or equal to 4294967295.  1280 octets is
+   the minimum IPv6 link MTU ([RFC8200]).  Values greater than 65535 are
+   used for IPv6 jumbograms ([RFC2675]).
+
+   A value of 9000 means that an IP packet of 9000 octets is acceptable.
+
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 5]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+4.  Procedures
+
+4.1.  Network Boundary
+
+   The network boundary of a received route is the interface on which
+   the receiving speaker forwards traffic toward the BGP next hop of
+   that route, when that interface is the edge the route was learned
+   across.  For a directly connected external session, this is the
+   interface of the session.  The IP MTU of the boundary is the IP MTU
+   of that interface for the address family of the NLRI.
+
+   An internal interface is not a network boundary for a route that was
+   learned across a different edge.  A speaker MUST NOT replace
+   NEXT_HOP_MTU with the IP MTU of an internal interface when it
+   readvertises such a route.
+
+   If the BGP next hop is not reached through the interface the session
+   was received on, as with a multi-hop external session, the speaker
+   MUST NOT invent a boundary from an unrelated interface.  The speaker
+   MAY attach the attribute when the operator has configured a
+   promissory value for that neighbor.  A configured value MUST be less
+   than or equal to the IP MTU of the interface that actually forwards
+   traffic toward the next hop.
+
+4.2.  Adding the Attribute on Receipt
+
+   The BGP speaker that receives an NLRI across a network boundary MAY
+   add NEXT_HOP_MTU to that route.  The speaker adds the attribute when
+   it installs the route for local use and when it advertises the route.
+   The route does not need to have arrived with the attribute already
+   present.  Section 5 shows this case.  The receiving router adds the
+   attribute from the boundary interface.
+
+   The speaker computes the attached value as follows.
+
+   1.  Let L be the IP MTU, in octets, of the network boundary.  If L
+       cannot be determined, the speaker MUST NOT attach the attribute.
+
+   2.  If the NLRI are IPv4 and L is less than 68 or greater than 65535,
+       or the NLRI are IPv6 and L is less than 1280 or greater than
+       4294967295, the speaker MUST NOT attach the attribute.
+
+   3.  If the received route contains a valid NEXT_HOP_MTU value R and
+       local policy accepts R from that neighbor, the attached value is
+       the minimum of L and R.  Otherwise the attached value is L.
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 6]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+   4.  Local policy MAY reduce the attached value further.  Policy MUST
+       NOT increase it.  The result MUST still satisfy the range for the
+       address family in Section 3.2.
+
+   All NLRI in one UPDATE MUST share one NEXT_HOP_MTU value when the
+   attribute is present.  A speaker MAY place several NLRI that share a
+   value into one UPDATE.  NLRI that do not share a value MUST be
+   advertised in separate UPDATE messages.
+
+   Absence of the attribute means the speaker makes no promise.
+   Consumers MUST treat absence as lack of information.  Absence does
+   not imply 1500, 1280, 68, or any other default.
+
+4.3.  Internal and External Sessions
+
+   NEXT_HOP_MTU MAY be carried on internal sessions and on external
+   sessions.  Internal applications include internal peers, route
+   reflectors, and functions on the receiving speaker that choose a
+   packet size for the NLRI.  External applications include the external
+   peer that receives the attribute, and functions in that neighboring
+   network that use the promissory value for traffic toward the NLRI.
+
+   An implementation MUST provide configuration to enable or disable
+   attachment of the attribute, and configuration to enable or disable
+   acceptance of a received value, per neighbor and per AFI and SAFI.
+   This document does not require either behavior to be enabled on a
+   session by default.  The example in Section 5 assumes the receiving
+   speaker is configured to add the attribute.
+
+   On an internal session, a speaker that does not itself forward
+   traffic across a different network boundary for the NLRI SHOULD
+   advertise the attribute unchanged when the route already has one and
+   the BGP next hop is unchanged.  A route reflector that does not
+   change the next hop SHOULD forward the attribute unchanged
+   ([RFC4456]).
+
+   The border speaker that learned the route across the network boundary
+   SHOULD include the value it computed in Section 4.2 when it
+   advertises the route to internal peers.  That remains true when the
+   border speaker replaces the BGP next hop with its own address.
+   Traffic from internal peers still crosses the same network boundary,
+   so the promissory value is still the IP MTU of that boundary.
+
+   On an external session, the value a speaker attaches MUST be the
+   promissory value for traffic that crosses the boundary with that peer
+   toward the NLRI.  When the route already carries a valid NEXT_HOP_MTU
+   and the speaker also knows the IP MTU of the interface facing that
+   peer, the attached value MUST be the minimum of those two numbers,
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 7]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+   then reduced by local policy if policy reduces it.  The speaker MUST
+   NOT copy a promise about one boundary onto a session that crosses a
+   different boundary without applying that minimum.  If the speaker
+   cannot determine the value for the session it is advertising on, it
+   MUST omit the attribute.
+
+   A speaker that originates an NLRI MAY attach NEXT_HOP_MTU when it
+   advertises the route.  The value is the IP MTU of the network
+   boundary the advertisement is sent across, subject to the minimums in
+   Section 3.2.  Origination is optional.  The receiving speaker can add
+   the attribute from its own side of the boundary whether or not the
+   originator sent one.
+
+4.4.  Promissory Semantics
+
+   By attaching NEXT_HOP_MTU, a speaker promises that an IP packet
+   destined to a covered NLRI, of size less than or equal to the
+   attribute value, is acceptable across the network boundary.
+   Acceptable means the boundary interface permits a packet of that size
+   and the attaching speaker will forward such a packet across that
+   boundary toward the NLRI.
+
+   The promise covers that boundary.  An application MAY use the value
+   as the IP packet size it sends toward the NLRI when the packet will
+   cross the boundary identified by the route.  An application that
+   needs the minimum MTU of every link between a source and a
+   destination continues to use Path MTU Discovery ([RFC8201],
+   [RFC1191]) or Packetization Layer Path MTU Discovery ([RFC4821]).
+
+   NEXT_HOP_MTU MUST NOT by itself change the result of the BGP Decision
+   Process ([RFC4271]).  Local policy MAY select or prefer a route using
+   the attribute.  Policy that does so is a local matter.
+
+4.5.  Forwarding and Multiple Paths
+
+   A speaker MAY program the promissory value as a per-destination
+   forwarding MTU for the NLRI.  It MAY do so only when every path it
+   uses to forward traffic to that NLRI carries a valid NEXT_HOP_MTU.
+   The programmed value MUST be the minimum of the values on those
+   paths.  If any path used for forwarding has no attribute, the speaker
+   MUST NOT program a promissory MTU for the combined destination.
+
+   Each path has its own path attributes.  Two paths for the same NLRI
+   may carry different NEXT_HOP_MTU values when they were learned across
+   different boundaries.
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 8]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+4.6.  Aggregation
+
+   When a speaker aggregates component routes into a less specific NLRI,
+   it MAY attach NEXT_HOP_MTU to the aggregate only when every component
+   route included in the aggregate has a valid NEXT_HOP_MTU.  The value
+   MUST be the minimum of the component values.  If any included
+   component has no attribute, the speaker MUST omit NEXT_HOP_MTU from
+   the aggregate.
+
+4.7.  Changes of Interface MTU
+
+   When the IP MTU of a network boundary changes, the speaker that
+   attached NEXT_HOP_MTU from that boundary MUST advertise a replacement
+   route for each affected NLRI.  The replacement carries the new value
+   computed by Section 4.2.  If the speaker no longer makes a promise,
+   the replacement omits the attribute.  BGP has no withdraw for a
+   single path attribute.  Replacement of the route is the update.
+
+5.  Example
+
+   Figure 2 shows AS 65000 and AS 65001 exchanging the documentation
+   prefix 2001:db8::/48 ([RFC3849]).  AS 65000 and AS 65001 are private
+   AS numbers ([RFC6996]).  Router A in AS 65000 advertises the prefix
+   to Router B in AS 65001.  The boundary interface permits an IP
+   payload of 9000 octets.  Router B, the receiving router, adds
+   NEXT_HOP_MTU with the value 9000 and advertises the route to Router C
+   inside AS 65001.
+
+        AS 65000                         AS 65001
+
+   +---------------+            +---------------+
+   | Router A      |=== eBGP ===| Router B      |
+   | 2001:db8:1::1 | IP payload | 2001:db8:1::2 |
+   | advertises    |    9000    | receives NLRI |
+   | 2001:db8::/48 |   octets   | adds NH-MTU   |
+   +---------------+            | value 9000    |
+                                +---------------+
+
+                                        |
+                                        | iBGP
+                                        | NH-MTU 9000
+                                        v
+                                +---------------+
+                                | Router C      |
+                                | internal      |
+                                | application   |
+                                +---------------+
+
+
+
+
+Mauch                     Expires 24 April 2027                 [Page 9]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+           Figure 2: AS 65000 and AS 65001 exchange 2001:db8::/48
+
+   The boundary subnet 2001:db8:1::/64 is outside the advertised prefix
+   2001:db8::/48.  Router A's address on the boundary is 2001:db8:1::1.
+   Router B's address on the boundary is 2001:db8:1::2.
+
+   1.  Router A advertises 2001:db8::/48 to Router B.  The advertisement
+       need not include NEXT_HOP_MTU.  Router A MAY include it, with the
+       value 9000, as its own promise for the same boundary.
+
+   2.  The interface on Router B toward Router A has an IP MTU that
+       permits an IP payload of 9000 octets.  That interface is the
+       network boundary for this NLRI.
+
+   3.  Router B receives the NLRI and adds NEXT_HOP_MTU with the value
+       9000.  If Router A also sent the value 9000 and Router B accepts
+       it, the minimum is still 9000.  If Router A had sent a smaller
+       valid value, Router B would attach that smaller value.
+
+   4.  Router B advertises the route to Router C on an internal session,
+       including NEXT_HOP_MTU 9000.  Router C is an internal application
+       of the promissory value.  Router C can treat an IP packet of 9000
+       octets as acceptable when that packet will cross this boundary
+       toward 2001:db8::/48.
+
+   5.  The same procedure applies to a prefix AS 65001 advertises to AS
+       65000.  The router that receives the prefix adds the attribute
+       from the IP MTU of its own boundary interface.
+
+   Table 2 lists the route Router B advertises to Router C when Router B
+   does not rewrite the next hop.  The IPv6 next hop and the NLRI are
+   carried in MP_REACH_NLRI.  If Router B rewrites the next hop to
+   itself, NEXT_HOP_MTU remains 9000 because traffic from Router C still
+   crosses the boundary in Figure 2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                [Page 10]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+                  +==============+======================+
+                  | Element      | Value                |
+                  +==============+======================+
+                  | AFI / SAFI   | 2 / 1 (IPv6 unicast) |
+                  +--------------+----------------------+
+                  | NLRI         | 2001:db8::/48        |
+                  +--------------+----------------------+
+                  | Next hop     | 2001:db8:1::1        |
+                  +--------------+----------------------+
+                  | AS_PATH      | 65000                |
+                  +--------------+----------------------+
+                  | NEXT_HOP_MTU | 9000                 |
+                  +--------------+----------------------+
+
+                     Table 2: Route Router B advertises
+                                to Router C
+
+   9000 decimal is 0x00002328.  With the flags octet set to 0x80 and the
+   length set to 4, the attribute octets are:
+
+    0                   1                   2
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |      0x80     |      TBD      |      0x04     |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                          0x00002328                           |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+               Figure 3: Attribute octets for the value 9000
+
+   The second octet is the IANA-assigned type code.  It is shown as TBD
+   until that assignment exists.
+
+   Traffic toward 2001:db8::/48 flows from Router C to Router B and then
+   across the boundary to Router A.  The promissory value 9000 applies
+   to IP packets on that crossing.  An external application uses the
+   same attribute when a speaker includes it on an external
+   advertisement.  The value on that advertisement is computed for the
+   boundary that traffic from that external peer will cross, as
+   specified in Section 4.3.
+
+
+
+
+
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                [Page 11]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+6.  Error Handling
+
+   NEXT_HOP_MTU errors use the attribute discard approach of [RFC7606].
+   The malformed attribute is discarded and the UPDATE is processed as
+   if the attribute had not been present.  The speaker MUST NOT use a
+   discarded value as a promissory MTU.  These errors MUST NOT cause a
+   BGP NOTIFICATION and MUST NOT cause the NLRI to be treated as
+   withdrawn.  A malformed optional hint is discarded so that it cannot
+   remove reachability.
+
+   A speaker MUST discard the attribute as malformed when any of the
+   following is true:
+
+   *  The attribute appears more than once in the UPDATE.
+
+   *  The length is not 4.
+
+   *  The Optional bit is 0, the Transitive bit is 1, the Partial bit is
+      1, the Extended Length bit is 1, or any reserved flag bit is 1.
+
+   *  The value is 0.
+
+   *  The UPDATE carries IPv4 unicast NLRI and the value is less than 68
+      or greater than 65535.
+
+   *  The UPDATE carries IPv6 unicast NLRI and the value is less than
+      1280.
+
+   *  The UPDATE carries NLRI for an AFI or SAFI other than IPv4 unicast
+      or IPv6 unicast.
+
+   A value that meets the checks above is syntactically valid.  Whether
+   the neighbor is permitted to constrain the local promise with that
+   value is a matter of policy (Section 4.2).
+
+7.  Operational Considerations
+
+   Operators who want a receiving router to publish a boundary MTU
+   enable attachment on that router for the neighbors that should
+   receive the promise.  In Figure 2, Router B is enabled to add
+   NEXT_HOP_MTU for the internal session toward Router C.  Router B's
+   boundary interface is configured with an IP MTU of 9000 before the
+   attribute can promise 9000.
+
+
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                [Page 12]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+   Both ends of a boundary are normally configured with the same IP MTU.
+   The receiving speaker promises the size its own interface permits.
+   When the advertising peer also sends NEXT_HOP_MTU and the receiver
+   accepts it, the value propagated inside the receiving AS is the
+   minimum of the two, which covers the case where the two ends differ.
+
+   Internal consumers can use the value as a per-destination forwarding
+   MTU, as a packetization limit for traffic they originate toward the
+   NLRI, or as input to an encapsulation function that subtracts its own
+   overhead from the promissory size.  External consumers can use a
+   value received on an external session in the same ways, for traffic
+   that will cross the boundary the advertisement described.
+
+   TCP MSS clamping and Path MTU Discovery continue to apply.
+   NEXT_HOP_MTU does not remove the need for them on paths that extend
+   past the boundary identified by the route.
+
+8.  IANA Considerations
+
+   IANA is requested to assign a code point from the BGP Path Attributes
+   registry in the Border Gateway Protocol (BGP) Parameters group, as
+   shown in Table 3.  The attribute is optional and non-transitive.  The
+   value field is four octets.
+
+                 +=======+==============+===============+
+                 | Value | Code         | Reference     |
+                 +=======+==============+===============+
+                 | TBD   | NEXT_HOP_MTU | This document |
+                 +-------+--------------+---------------+
+
+                    Table 3: Addition to the BGP Path
+                           Attributes registry
+
+   The RFC Editor is asked to replace TBD in this document with the
+   assigned code point and to remove this paragraph.
+
+9.  Security Considerations
+
+   NEXT_HOP_MTU is a promise that another speaker may use to choose an
+   IP packet size.  A value larger than the size the boundary will
+   actually accept can cause packet loss when senders transmit packets
+   the boundary drops.  A value smaller than the size the boundary will
+   accept causes senders to use smaller packets.  That reduces
+   efficiency and can interact with tunnel overhead and with Path MTU
+   Discovery.
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                [Page 13]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+   The speaker that adds the attribute on receipt derives the value from
+   its own interface MTU.  That local measurement limits exposure to a
+   peer that overstates its MTU.  When a received value is accepted, it
+   can only reduce the attached value, because the attached value is the
+   minimum of the local boundary IP MTU and the received value.  A peer
+   can still offer a smaller value and cause this speaker to propagate
+   that smaller promise.  Acceptance of a received value is therefore a
+   configuration choice per neighbor (Section 4.3).  Operators SHOULD
+   enable acceptance from an external peer only when that peer is
+   trusted to state a boundary MTU.
+
+   Advertising the attribute tells the receiving peer the IP MTU of a
+   network boundary.  Operators who treat that MTU as sensitive can
+   disable attachment toward the peers in question.
+
+   This document defines no new session authentication.  The existing
+   protection of the BGP session applies.  Operational guidance for
+   protecting BGP sessions is discussed in [RFC7454].  Malformed
+   NEXT_HOP_MTU attributes are discarded without a session reset and
+   without withdrawing the NLRI (Section 6), so a corrupt or hostile
+   optional value cannot be used to drop the session or to remove the
+   route.
+
+10.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC4271]  Rekhter, Y., Ed., Li, T., Ed., and S. Hares, Ed., "A
+              Border Gateway Protocol 4 (BGP-4)", RFC 4271,
+              DOI 10.17487/RFC4271, January 2006,
+              <https://www.rfc-editor.org/info/rfc4271>.
+
+   [RFC4760]  Bates, T., Chandra, R., Katz, D., and Y. Rekhter,
+              "Multiprotocol Extensions for BGP-4", RFC 4760,
+              DOI 10.17487/RFC4760, January 2007,
+              <https://www.rfc-editor.org/info/rfc4760>.
+
+   [RFC7606]  Chen, E., Ed., Scudder, J., Ed., Mohapatra, P., and K.
+              Patel, "Revised Error Handling for BGP UPDATE Messages",
+              RFC 7606, DOI 10.17487/RFC7606, August 2015,
+              <https://www.rfc-editor.org/info/rfc7606>.
+
+   [RFC791]   Postel, J., "Internet Protocol", STD 5, RFC 791,
+              DOI 10.17487/RFC791, September 1981,
+              <https://www.rfc-editor.org/info/rfc791>.
+
+
+
+Mauch                     Expires 24 April 2027                [Page 14]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/info/rfc8174>.
+
+   [RFC8200]  Deering, S. and R. Hinden, "Internet Protocol, Version 6
+              (IPv6) Specification", STD 86, RFC 8200,
+              DOI 10.17487/RFC8200, July 2017,
+              <https://www.rfc-editor.org/info/rfc8200>.
+
+11.  Informative References
+
+   [I-D.ietf-idr-bgp-ls-link-mtu]
+              Zhu, Y., Hu, Z., Peng, S., and R. Mwehair, "Signaling
+              Maximum Transmission Unit (MTU) using BGP-LS", Work in
+              Progress, Internet-Draft, draft-ietf-idr-bgp-ls-link-mtu-
+              12, 20 May 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-idr-bgp-ls-link-mtu-12>.
+
+   [RFC1191]  Mogul, J. and S. Deering, "Path MTU discovery", RFC 1191,
+              DOI 10.17487/RFC1191, November 1990,
+              <https://www.rfc-editor.org/info/rfc1191>.
+
+   [RFC2675]  Borman, D., Deering, S., and R. Hinden, "IPv6 Jumbograms",
+              RFC 2675, DOI 10.17487/RFC2675, August 1999,
+              <https://www.rfc-editor.org/info/rfc2675>.
+
+   [RFC3849]  Huston, G., Lord, A., and P. Smith, "IPv6 Address Prefix
+              Reserved for Documentation", RFC 3849,
+              DOI 10.17487/RFC3849, July 2004,
+              <https://www.rfc-editor.org/info/rfc3849>.
+
+   [RFC4456]  Bates, T., Chen, E., and R. Chandra, "BGP Route
+              Reflection: An Alternative to Full Mesh Internal BGP
+              (IBGP)", RFC 4456, DOI 10.17487/RFC4456, April 2006,
+              <https://www.rfc-editor.org/info/rfc4456>.
+
+   [RFC4821]  Mathis, M. and J. Heffner, "Packetization Layer Path MTU
+              Discovery", RFC 4821, DOI 10.17487/RFC4821, March 2007,
+              <https://www.rfc-editor.org/info/rfc4821>.
+
+   [RFC6996]  Mitchell, J., "Autonomous System (AS) Reservation for
+              Private Use", BCP 6, RFC 6996, DOI 10.17487/RFC6996, July
+              2013, <https://www.rfc-editor.org/info/rfc6996>.
+
+   [RFC7454]  Durand, J., Pepelnjak, I., and G. Doering, "BGP Operations
+              and Security", BCP 194, RFC 7454, DOI 10.17487/RFC7454,
+              February 2015, <https://www.rfc-editor.org/info/rfc7454>.
+
+
+
+
+Mauch                     Expires 24 April 2027                [Page 15]
+
+Internet-Draft              BGP Next Hop MTU                October 2026
+
+
+   [RFC8201]  McCann, J., Deering, S., Mogul, J., and R. Hinden, Ed.,
+              "Path MTU Discovery for IP version 6", STD 87, RFC 8201,
+              DOI 10.17487/RFC8201, July 2017,
+              <https://www.rfc-editor.org/info/rfc8201>.
+
+   [RFC9552]  Talaulikar, K., Ed., "Distribution of Link-State and
+              Traffic Engineering Information Using BGP", RFC 9552,
+              DOI 10.17487/RFC9552, December 2023,
+              <https://www.rfc-editor.org/info/rfc9552>.
+
+Author's Address
+
+   Jared Mauch
+   Akamai
+   Email: jared@akamai.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mauch                     Expires 24 April 2027                [Page 16]

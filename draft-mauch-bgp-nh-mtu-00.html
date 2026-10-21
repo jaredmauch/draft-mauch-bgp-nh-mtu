@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>BGP Next Hop MTU Attribute</title>
+<meta content="Jared Mauch" name="author">
+<meta content="
+       
+        This document defines an optional, non-transitive BGP path
+        attribute, NEXT_HOP_MTU, whose type code is TBD.  The attribute
+        carries the IP MTU available for a BGP NLRI across a network
+        boundary.  The BGP speaker that receives the NLRI may add the
+        attribute from the IP MTU of that boundary.  The value is a
+        promissory commitment that an IP packet of the indicated size is
+        acceptable across the boundary.  Applications on internal BGP
+        sessions and on external BGP sessions can use the value.
+       
+    " name="description">
+<meta content="xml2rfc 3.23.0" name="generator">
+<meta content="BGP" name="keyword">
+<meta content="MTU" name="keyword">
+<meta content="NEXT_HOP_MTU" name="keyword">
+<meta content="draft-mauch-bgp-nh-mtu-00" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.23.0
+    Python 3.13.5
+    ConfigArgParse 1.7
+    google-i18n-address 2.4.0
+    intervaltree 3.0.2
+    Jinja2 3.1.6
+    lxml 5.4.0
+    platformdirs 4.3.7
+    pycountry 24.6.1
+    PyYAML 6.0.2
+    requests 2.32.3
+    setuptools 78.1.1
+    wcwidth 0.2.13
+-->
+<link href="draft-mauch-bgp-nh-mtu-00.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">/*
+
+  NOTE: Changes at the bottom of this file overrides some earlier settings.
+
+  Once the style has stabilized and has been adopted as an official RFC style,
+  this can be consolidated so that style settings occur only in one place, but
+  for now the contents of this file consists first of the initial CSS work as
+  provided to the RFC Formatter (xml2rfc) work, followed by itemized and
+  commented changes found necessary during the development of the v3
+  formatters.
+
+*/
+
+/* fonts */
+@import url('https://fonts.googleapis.com/css?family=Noto+Sans'); /* Sans-serif */
+@import url('https://fonts.googleapis.com/css?family=Noto+Serif'); /* Serif (print) */
+@import url('https://fonts.googleapis.com/css?family=Roboto+Mono'); /* Monospace */
+
+:root {
+  --font-sans: 'Noto Sans', Arial, Helvetica, sans-serif;
+  --font-serif: 'Noto Serif', 'Times', 'Times New Roman', serif;
+  --font-mono: 'Roboto Mono', Courier, 'Courier New', monospace;
+}
+
+@viewport {
+  zoom: 1.0;
+}
+@-ms-viewport {
+  width: extend-to-zoom;
+  zoom: 1.0;
+}
+/* general and mobile first */
+html {
+}
+body {
+  max-width: 90%;
+  margin: 1.5em auto;
+  color: #222;
+  background-color: #fff;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  scroll-behavior: smooth;
+  overflow-wrap: break-word;
+}
+.ears {
+  display: none;
+}
+
+/* headings */
+#title, h1, h2, h3, h4, h5, h6 {
+  margin: 1em 0 0.5em;
+  font-weight: bold;
+  line-height: 1.3;
+}
+#title {
+  clear: both;
+  border-bottom: 1px solid #ddd;
+  margin: 0 0 0.5em 0;
+  padding: 1em 0 0.5em;
+}
+.author {
+  padding-bottom: 4px;
+}
+h1 {
+  font-size: 26px;
+  margin: 1em 0;
+}
+h2 {
+  font-size: 22px;
+  margin-top: -20px;  /* provide offset for in-page anchors */
+  padding-top: 33px;
+}
+h3 {
+  font-size: 18px;
+  margin-top: -36px;  /* provide offset for in-page anchors */
+  padding-top: 42px;
+}
+h4 {
+  font-size: 16px;
+  margin-top: -36px;  /* provide offset for in-page anchors */
+  padding-top: 42px;
+}
+h5, h6 {
+  font-size: 14px;
+}
+#n-copyright-notice {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1em;
+  margin-bottom: 1em;
+}
+/* general structure */
+p {
+  padding: 0;
+  margin: 0 0 1em 0;
+  text-align: left;
+}
+div, span {
+  position: relative;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  padding: 1em 1em 0;
+  margin-bottom: 1.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+svg[font-family~="serif" i], svg [font-family~="serif" i] {
+  font-family: var(--font-serif);
+}
+svg[font-family~="sans-serif" i], svg [font-family~="sans-serif" i] {
+  font-family: var(--font-sans);
+}
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  padding: 1em 1em 0;
+  margin-bottom: 1.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  display: table;
+  border: none;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 1em 2em;
+}
+ol ol, ul ul, ol ul, ul ol {
+  margin-left: 1em;
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+.ulCompact li {
+  margin: 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+}
+ul.empty li, .ulEmpty li {
+  margin-top: 0.5em;
+}
+ul.ulBare, li.ulBare {
+  margin-left: 0em !important;
+}
+ul.compact, .ulCompact,
+ol.compact, .olCompact {
+  line-height: 100%;
+  margin: 0 0 0 2em;
+}
+
+/* definition lists */
+dl {
+}
+dl > dt {
+  float: left;
+  margin-right: 1em;
+}
+/* 
+dl.nohang > dt {
+  float: none;
+}
+*/
+dl > dd {
+  margin-bottom: .8em;
+  min-height: 1.3em;
+}
+dl.compact > dd, .dlCompact > dd {
+  margin-bottom: 0em;
+}
+dl > dd > dl {
+  margin-top: 0.5em;
+  margin-bottom: 0em;
+}
+
+/* links */
+a {
+  text-decoration: none;
+}
+a[href] {
+  color: #22e; /* Arlen: WCAG 2019 */
+}
+a[href]:hover {
+  background-color: #f2f2f2;
+}
+figcaption a[href],
+a[href].selfRef {
+  color: #222;
+}
+/* XXX probably not this:
+a.selfRef:hover {
+  background-color: transparent;
+  cursor: default;
+} */
+
+/* Figures */
+tt, code, pre {
+  background-color: #f9f9f9;
+  font-family: var(--font-mono);
+}
+pre {
+  border: 1px solid #eee;
+  margin: 0;
+  padding: 1em;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption {
+  font-style: italic;
+  margin: 0 0 1em 0;
+}
+@media screen {
+  pre {
+    overflow-x: auto;
+    max-width: 100%;
+    max-width: calc(100% - 22px);
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 1.2em 2em;
+}
+blockquote {
+  background-color: #f9f9f9;
+  color: #111; /* Arlen: WCAG 2019 */
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  margin: 1em 0;
+}
+blockquote > *:last-child {
+  margin-bottom: 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+.xref {
+  overflow-wrap: normal;
+}
+
+/* tables */
+table {
+  width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  border: 1px solid #eee;
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5em 0.75em;
+}
+th {
+  text-align: left;
+  background-color: #e9e9e9;
+}
+tr:nth-child(2n+1) > td {
+  background-color: #f5f5f5;
+}
+table caption {
+  font-style: italic;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+table p {
+  /* XXX to avoid bottom margin on table row signifiers. If paragraphs should
+     be allowed within tables more generally, it would be far better to select on a class. */
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  color: #666; /* Arlen: AHDJ 2019 */
+  text-decoration: none;
+  visibility: hidden;
+  user-select: none;
+  -ms-user-select: none;
+  -o-user-select:none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+@media screen {
+  aside:hover > a.pilcrow,
+  p:hover > a.pilcrow,
+  blockquote:hover > a.pilcrow,
+  div:hover > a.pilcrow,
+  li:hover > a.pilcrow,
+  pre:hover > a.pilcrow {
+    visibility: visible;
+  }
+  a.pilcrow:hover {
+    background-color: transparent;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid #eee;
+}
+.bcp14 {
+  font-variant: small-caps;
+}
+
+.role {
+  font-variant: all-small-caps;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: 0.9em;
+}
+#identifiers dt {
+  width: 3em;
+  clear: left;
+}
+#identifiers dd {
+  float: left;
+  margin-bottom: 0;
+}
+/* Fix PDF info block run off issue */
+@media print {
+  #identifiers dd {
+    float: none;
+  }
+}
+#identifiers .authors .author {
+  display: inline-block;
+  margin-right: 1.5em;
+}
+#identifiers .authors .org {
+  font-style: italic;
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #666; /* Arlen: WCAG 2019 */
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: left;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc  {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+}
+nav.toc ul {
+  margin: 0 0.5em 0 0;
+  padding: 0;
+  list-style: none;
+}
+nav.toc li {
+  line-height: 1.3em;
+  margin: 0.75em 0;
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+}
+/* references */
+.references dt {
+  text-align: right;
+  font-weight: bold;
+  min-width: 7em;
+}
+.references dd {
+  margin-left: 8em;
+  overflow: auto;
+}
+
+.refInstance {
+  margin-bottom: 1.25em;
+}
+
+.refSubseries {
+  margin-bottom: 1.25em;
+}
+
+.references .ascii {
+  margin-bottom: 0.25em;
+}
+
+/* index */
+.index ul {
+  margin: 0 0 0 1em;
+  padding: 0;
+  list-style: none;
+}
+.index ul ul {
+  margin: 0;
+}
+.index li {
+  margin: 0;
+  text-indent: -2em;
+  padding-left: 2em;
+  padding-bottom: 5px;
+}
+.indexIndex {
+  margin: 0.5em 0 1em;
+}
+.index a {
+  font-weight: 700;
+}
+/* make the index two-column on all but the smallest screens */
+@media (min-width: 600px) {
+  .index ul {
+    -moz-column-count: 2;
+    -moz-column-gap: 20px;
+  }
+  .index ul ul {
+    -moz-column-count: 1;
+    -moz-column-gap: 0;
+  }
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  margin: 1em 0;
+}
+
+address.vcard .nameRole {
+  font-weight: 700;
+  margin-left: 0;
+}
+address.vcard .label {
+  font-family: var(--font-sans);
+  margin: 0.5em 0;
+}
+address.vcard .type {
+  display: none;
+}
+.alternative-contact {
+  margin: 1.5em 0 1em;
+}
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+
+/* temporary notes */
+.rfcEditorRemove::before {
+  position: absolute;
+  top: 0.2em;
+  right: 0.2em;
+  padding: 0.2em;
+  content: "The RFC Editor will remove this note";
+  color: #9e2a00; /* Arlen: WCAG 2019 */
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+}
+.rfcEditorRemove {
+  position: relative;
+  padding-top: 1.8em;
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+  border-radius: 3px;
+}
+.cref {
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+/* alternative layout for smaller screens */
+@media screen and (max-width: 1023px) {
+  body {
+    padding-top: 2em;
+  }
+  #title {
+    padding: 1em 0;
+  }
+  h1 {
+    font-size: 24px;
+  }
+  h2 {
+    font-size: 20px;
+    margin-top: -18px;  /* provide offset for in-page anchors */
+    padding-top: 38px;
+  }
+  #identifiers dd {
+    max-width: 60%;
+  }
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    background-color: inherit;
+    border-bottom: 1px solid #ccc;
+  }
+  #toc h2 {
+    margin: -1px 0 0 0;
+    padding: 4px 0 4px 6px;
+    padding-right: 1em;
+    min-width: 190px;
+    font-size: 1.1em;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+  }
+  #toc h2::before { /* css hamburger */
+    float: right;
+    position: relative;
+    width: 1em;
+    height: 1px;
+    left: -164px;
+    margin: 6px 0 0 0;
+    background: white none repeat scroll 0 0;
+    box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+    content: "";
+  }
+  #toc nav {
+    display: none;
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+}
+
+/* alternative layout for wide screens */
+@media screen and (min-width: 1024px) {
+  body {
+    max-width: 724px;
+    margin: 42px auto;
+    padding-left: 1.5em;
+    padding-right: 29em;
+  }
+  #toc {
+    position: fixed;
+    top: 42px;
+    right: 42px;
+    width: 25%;
+    margin: 0;
+    padding: 0 1em;
+    z-index: 1;
+  }
+  #toc h2 {
+    border-top: none;
+    border-bottom: 1px solid #ddd;
+    font-size: 1em;
+    font-weight: normal;
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 0;
+    overflow: auto;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre {
+    page-break-inside: avoid;
+  }
+  figure {
+    overflow: scroll;
+  }
+  .breakable pre {
+    break-inside: auto;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  h2+*, h3+*, h4+*, h5+*, h6+* {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+/* This is commented out here, as the string-set: doesn't
+   pass W3C validation currently */
+/*
+.ears thead .left {
+  string-set: ears-top-left content();
+}
+
+.ears thead .center {
+  string-set: ears-top-center content();
+}
+
+.ears thead .right {
+  string-set: ears-top-right content();
+}
+
+.ears tfoot .left {
+  string-set: ears-bottom-left content();
+}
+
+.ears tfoot .center {
+  string-set: ears-bottom-center content();
+}
+
+.ears tfoot .right {
+  string-set: ears-bottom-right content();
+}
+*/
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+  /* The following is commented out here, but set appropriately by in code, as
+     the content depends on the document */
+  /*
+  @top-left {
+    content: 'Internet-Draft';
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-left {
+    content: string(ears-top-left);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-center {
+    content: string(ears-top-center);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-right {
+    content: string(ears-top-right);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @bottom-left {
+    content: string(ears-bottom-left);
+    vertical-align: top;
+    border-top: solid 1px #ccc;
+  }
+  @bottom-center {
+    content: string(ears-bottom-center);
+    vertical-align: top;
+    border-top: solid 1px #ccc;
+  }
+  @bottom-right {
+      content: '[Page ' counter(page) ']';
+      vertical-align: top;
+      border-top: solid 1px #ccc;
+  }
+  */
+
+}
+
+/* Changes introduced to fix issues found during implementation */
+/* Make sure links are clickable even if overlapped by following H* */
+a {
+  z-index: 2;
+}
+/* Separate body from document info even without intervening H1 */
+section {
+  clear: both;
+}
+
+
+/* Top align author divs, to avoid names without organization dropping level with org names */
+.author {
+  vertical-align: top;
+}
+
+/* Leave room in document info to show Internet-Draft on one line */
+#identifiers dt {
+  width: 8em;
+}
+
+/* Don't waste quite as much whitespace between label and value in doc info */
+#identifiers dd {
+  margin-left: 1em;
+}
+
+/* Give floating toc a background color (needed when it's a div inside section */
+#toc {
+  background-color: white;
+}
+
+/* Make the collapsed ToC header render white on gray also when it's a link */
+@media screen and (max-width: 1023px) {
+  #toc h2 a,
+  #toc h2 a:link,
+  #toc h2 a:focus,
+  #toc h2 a:hover,
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+}
+
+/* Give the bottom of the ToC some whitespace */
+@media screen and (min-width: 1024px) {
+  #toc {
+    padding: 0 0 1em 1em;
+  }
+}
+
+/* Style section numbers with more space between number and title */
+.section-number {
+  padding-right: 0.5em;
+}
+
+/* prevent monospace from becoming overly large */
+tt, code, pre {
+  font-size: 95%;
+}
+
+/* Fix the height/width aspect for ascii art*/
+.sourcecode pre,
+.art-text pre {
+  line-height: 1.12;
+}
+
+
+/* Add styling for a link in the ToC that points to the top of the document */
+a.toplink {
+  float: right;
+  margin-right: 0.5em;
+}
+
+/* Fix the dl styling to match the RFC 7992 attributes */
+dl > dt,
+dl.dlParallel > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl.dlNewline > dt {
+  float: none;
+}
+
+/* Provide styling for table cell text alignment */
+table td.text-left,
+table th.text-left {
+  text-align: left;
+}
+table td.text-center,
+table th.text-center {
+  text-align: center;
+}
+table td.text-right,
+table th.text-right {
+  text-align: right;
+}
+
+/* Make the alternative author contact information look less like just another
+   author, and group it closer with the primary author contact information */
+.alternative-contact {
+  margin: 0.5em 0 0.25em 0;
+}
+address .non-ascii {
+  margin: 0 0 0 2em;
+}
+
+/* With it being possible to set tables with alignment
+  left, center, and right, { width: 100%; } does not make sense */
+table {
+  width: auto;
+}
+
+/* Avoid reference text that sits in a block with very wide left margin,
+   because of a long floating dt label.*/
+.references dd {
+  overflow: visible;
+}
+
+/* Control caption placement */
+caption {
+  caption-side: bottom;
+}
+
+/* Limit the width of the author address vcard, so names in right-to-left
+   script don't end up on the other side of the page. */
+
+address.vcard {
+  max-width: 30em;
+  margin-right: auto;
+}
+
+/* For address alignment dependent on LTR or RTL scripts */
+address div.left {
+  text-align: left;
+}
+address div.right {
+  text-align: right;
+}
+
+/* Provide table alignment support.  We can't use the alignX classes above
+   since they do unwanted things with caption and other styling. */
+table.right {
+ margin-left: auto;
+ margin-right: 0;
+}
+table.center {
+ margin-left: auto;
+ margin-right: auto;
+}
+table.left {
+ margin-left: 0;
+ margin-right: auto;
+}
+
+/* Give the table caption label the same styling as the figcaption */
+caption a[href] {
+  color: #222;
+}
+
+@media print {
+  .toplink {
+    display: none;
+  }
+
+  /* avoid overwriting the top border line with the ToC header */
+  #toc {
+    padding-top: 1px;
+  }
+
+  /* Avoid page breaks inside dl and author address entries */
+  .vcard {
+    page-break-inside: avoid;
+  }
+
+}
+/* Tweak the bcp14 keyword presentation */
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+/* Tweak the invisible space above H* in order not to overlay links in text above */
+ h2 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 31px;
+ }
+ h3 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 24px;
+ }
+ h4 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 24px;
+ }
+/* Float artwork pilcrow to the right */
+@media screen {
+  .artwork a.pilcrow {
+    display: block;
+    line-height: 0.7;
+    margin-top: 0.15em;
+  }
+}
+/* Make pilcrows on dd visible */
+@media screen {
+  dd:hover > a.pilcrow {
+    visibility: visible;
+  }
+}
+/* Make the placement of figcaption match that of a table's caption
+   by removing the figure's added bottom margin */
+.alignLeft.art-text,
+.alignCenter.art-text,
+.alignRight.art-text {
+   margin-bottom: 0;
+}
+.alignLeft,
+.alignCenter,
+.alignRight {
+  margin: 1em 0 0 0;
+}
+/* In print, the pilcrow won't show on hover, so prevent it from taking up space,
+   possibly even requiring a new line */
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+/* Styling for the external metadata */
+div#external-metadata {
+  background-color: #eee;
+  padding: 0.5em;
+  margin-bottom: 0.5em;
+  display: none;
+}
+div#internal-metadata {
+  padding: 0.5em;                       /* to match the external-metadata padding */
+}
+/* Styling for title RFC Number */
+h1#rfcnum {
+  clear: both;
+  margin: 0 0 -1em;
+  padding: 1em 0 0 0;
+}
+/* Make .olPercent look the same as <ol><li> */
+dl.olPercent > dd {
+  margin-bottom: 0.25em;
+  min-height: initial;
+}
+/* Give aside some styling to set it apart */
+aside {
+  border-left: 1px solid #ddd;
+  margin: 1em 0 1em 2em;
+  padding: 0.2em 2em;
+}
+aside > dl,
+aside > ol,
+aside > ul,
+aside > table,
+aside > p {
+  margin-bottom: 0.5em;
+}
+/* Additional page break settings */
+@media print {
+  figcaption, table caption {
+    page-break-before: avoid;
+  }
+}
+/* Font size adjustments for print */
+@media print {
+  body  { font-size: 10pt;      line-height: normal; max-width: 96%; }
+  h1    { font-size: 1.72em;    padding-top: 1.5em; } /* 1*1.2*1.2*1.2 */
+  h2    { font-size: 1.44em;    padding-top: 1.5em; } /* 1*1.2*1.2 */
+  h3    { font-size: 1.2em;     padding-top: 1.5em; } /* 1*1.2 */
+  h4    { font-size: 1em;       padding-top: 1.5em; }
+  h5, h6 { font-size: 1em;      margin: initial; padding: 0.5em 0 0.3em; }
+}
+/* Sourcecode margin in print, when there's no pilcrow */
+@media print {
+  .artwork,
+  .artwork > pre,
+  .sourcecode {
+    margin-bottom: 1em;
+  }
+}
+/* Avoid narrow tables forcing too narrow table captions, which may render badly */
+table {
+  min-width: 20em;
+}
+/* ol type a */
+ol.type-a { list-style-type: lower-alpha; }
+ol.type-A { list-style-type: upper-alpha; }
+ol.type-i { list-style-type: lower-roman; }
+ol.type-I { list-style-type: upper-roman; }
+/* Apply the print table and row borders in general, on request from the RPC,
+and increase the contrast between border and odd row background slightly */
+table {
+  border: 1px solid #ddd;
+}
+td {
+  border-top: 1px solid #ddd;
+}
+tr {
+  break-inside: avoid;
+}
+tr:nth-child(2n+1) > td {
+  background-color: #f8f8f8;
+}
+/* Use style rules to govern display of the TOC. */
+@media screen and (max-width: 1023px) {
+  #toc nav { display: none; }
+  #toc.active nav { display: block; }
+}
+/* Add support for keepWithNext */
+.keepWithNext {
+  break-after: avoid-page;
+  break-after: avoid-page;
+}
+/* Add support for keepWithPrevious */
+.keepWithPrevious {
+  break-before: avoid-page;
+}
+/* Change the approach to avoiding breaks inside artwork etc. */
+figure, pre, table, .artwork, .sourcecode  {
+  break-before: auto;
+  break-after: auto;
+}
+/* Avoid breaks between <dt> and <dd> */
+dl {
+  break-before: auto;
+  break-inside: auto;
+}
+dt {
+  break-before: auto;
+  break-after: avoid-page;
+}
+dd {
+  break-before: avoid-page;
+  break-after: auto;
+  orphans: 3;
+  widows: 3
+}
+span.break, dd.break {
+  margin-bottom: 0;
+  min-height: 0;
+  break-before: auto;
+  break-inside: auto;
+  break-after: auto;
+}
+/* Undo break-before ToC */
+@media print {
+  #toc {
+    break-before: auto;
+  }
+}
+/* Text in compact lists should not get extra bottom margin space,
+   since that would makes the list not compact */
+ul.compact p, .ulCompact p,
+ol.compact p, .olCompact p {
+ margin: 0;
+}
+/* But the list as a whole needs the extra space at the end */
+section ul.compact,
+section .ulCompact,
+section ol.compact,
+section .olCompact {
+  margin-bottom: 1em;                    /* same as p not within ul.compact etc. */
+}
+/* The tt and code background above interferes with for instance table cell
+   backgrounds.  Changed to something a bit more selective. */
+tt, code {
+  background-color: transparent;
+}
+p tt, p code, li tt, li code, dt tt, dt code {
+  background-color: #f8f8f8;
+}
+/* Tweak the pre margin -- 0px doesn't come out well */
+pre {
+   margin-top: 0.5px;
+}
+/* Tweak the compact list text */
+ul.compact, .ulCompact,
+ol.compact, .olCompact,
+dl.compact, .dlCompact {
+  line-height: normal;
+}
+/* Don't add top margin for nested lists */
+li > ul, li > ol, li > dl,
+dd > ul, dd > ol, dd > dl,
+dl > dd > dl {
+  margin-top: initial;
+}
+/* Elements that should not be rendered on the same line as a <dt> */
+/* This should match the element list in writer.text.TextWriter.render_dl() */
+dd > div.artwork:first-child,
+dd > aside:first-child,
+dd > figure:first-child,
+dd > ol:first-child,
+dd > div.sourcecode:first-child,
+dd > table:first-child,
+dd > ul:first-child {
+  clear: left;
+}
+/* fix for weird browser behaviour when <dd/> is empty */
+dt+dd:empty::before{
+  content: "\00a0";
+}
+/* Make paragraph spacing inside <li> smaller than in body text, to fit better within the list */
+li > p {
+  margin-bottom: 0.5em
+}
+/* Don't let p margin spill out from inside list items */
+li > p:last-of-type:only-child {
+  margin-bottom: 0;
+}
+</style>
+<link href="rfc-local.css" rel="stylesheet" type="text/css">
+<script type="application/javascript">async function addMetadata(){try{const e=document.styleSheets[0].cssRules;for(let t=0;t<e.length;t++)if(/#identifiers/.exec(e[t].selectorText)){const a=e[t].cssText.replace("#identifiers","#external-updates");document.styleSheets[0].insertRule(a,document.styleSheets[0].cssRules.length)}}catch(e){console.log(e)}const e=document.getElementById("external-metadata");if(e)try{var t,a="",o=function(e){const t=document.getElementsByTagName("meta");for(let a=0;a<t.length;a++)if(t[a].getAttribute("name")===e)return t[a].getAttribute("content");return""}("rfc.number");if(o){t="https://www.rfc-editor.org/rfc/rfc"+o+".json";try{const e=await fetch(t);a=await e.json()}catch(e){t=document.URL.indexOf("html")>=0?document.URL.replace(/html$/,"json"):document.URL+".json";const o=await fetch(t);a=await o.json()}}if(!a)return;e.style.display="block";const s="",d="https://datatracker.ietf.org/doc",n="https://datatracker.ietf.org/ipr/search",c="https://www.rfc-editor.org/info",l=a.doc_id.toLowerCase(),i=a.doc_id.slice(0,3).toLowerCase(),f=a.doc_id.slice(3).replace(/^0+/,""),u={status:"Status",obsoletes:"Obsoletes",obsoleted_by:"Obsoleted By",updates:"Updates",updated_by:"Updated By",see_also:"See Also",errata_url:"Errata"};let h="<dl style='overflow:hidden' id='external-updates'>";["status","obsoletes","obsoleted_by","updates","updated_by","see_also","errata_url"].forEach(e=>{if("status"==e){a[e]=a[e].toLowerCase();var t=a[e].split(" "),o=t.length,w="",p=1;for(let e=0;e<o;e++)p<o?w=w+r(t[e])+" ":w+=r(t[e]),p++;a[e]=w}else if("obsoletes"==e||"obsoleted_by"==e||"updates"==e||"updated_by"==e){var g,m="",b=1;g=a[e].length;for(let t=0;t<g;t++)a[e][t]&&(a[e][t]=String(a[e][t]).toLowerCase(),m=b<g?m+"<a href='"+s+"/rfc/".concat(a[e][t])+"'>"+a[e][t].slice(3)+"</a>, ":m+"<a href='"+s+"/rfc/".concat(a[e][t])+"'>"+a[e][t].slice(3)+"</a>",b++);a[e]=m}else if("see_also"==e){var y,L="",C=1;y=a[e].length;for(let t=0;t<y;t++)if(a[e][t]){a[e][t]=String(a[e][t]);var _=a[e][t].slice(0,3),v=a[e][t].slice(3).replace(/^0+/,"");L=C<y?"RFC"!=_?L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+_+" "+v+"</a>, ":L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+v+"</a>, ":"RFC"!=_?L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+_+" "+v+"</a>":L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+v+"</a>",C++}a[e]=L}else if("errata_url"==e){var R="";R=a[e]?R+"<a href='"+a[e]+"'>Errata exist</a> | <a href='"+d+"/"+l+"'>Datatracker</a>| <a href='"+n+"/?"+i+"="+f+"&submit="+i+"'>IPR</a> | <a href='"+c+"/"+l+"'>Info page</a>":"<a href='"+d+"/"+l+"'>Datatracker</a> | <a href='"+n+"/?"+i+"="+f+"&submit="+i+"'>IPR</a> | <a href='"+c+"/"+l+"'>Info page</a>",a[e]=R}""!=a[e]?"Errata"==u[e]?h+=`<dt>More info:</dt><dd>${a[e]}</dd>`:h+=`<dt>${u[e]}:</dt><dd>${a[e]}</dd>`:"Errata"==u[e]&&(h+=`<dt>More info:</dt><dd>${a[e]}</dd>`)}),h+="</dl>",e.innerHTML=h}catch(e){console.log(e)}else console.log("Could not locate metadata <div> element");function r(e){return e.charAt(0).toUpperCase()+e.slice(1)}}window.removeEventListener("load",addMetadata),window.addEventListener("load",addMetadata);</script>
+</head>
+<body class="xml2rfc">
+<script src="metadata.min.js"></script>
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">BGP Next Hop MTU</td>
+<td class="right">October 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Mauch</td>
+<td class="center">Expires 24 April 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-mauch-bgp-nh-mtu-00</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-10-21" class="published">21 October 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-04-24">24 April 2027</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">J. Mauch</div>
+<div class="org">Akamai</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">BGP Next Hop MTU Attribute</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">
+        This document defines an optional, non-transitive BGP path
+        attribute, NEXT_HOP_MTU, whose type code is TBD.  The attribute
+        carries the IP MTU available for a BGP NLRI across a network
+        boundary.  The BGP speaker that receives the NLRI may add the
+        attribute from the IP MTU of that boundary.  The value is a
+        promissory commitment that an IP packet of the indicated size is
+        acceptable across the boundary.  Applications on internal BGP
+        sessions and on external BGP sessions can use the value.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-discussion-venues">
+<a href="#name-discussion-venues" class="section-name selfRef">Discussion Venues</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        This document is an individual submission intended for
+        consideration by the Inter-Domain Routing (IDR) Working Group.
+        Discussion takes place on the IDR mailing list (idr@ietf.org),
+        which is archived at
+        <span><a href="https://mailarchive.ietf.org/arch/browse/idr/">https://mailarchive.ietf.org/arch/browse/idr/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 24 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-requirements-language" class="internal xref">Requirements Language</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-next_hop_mtu-attribute" class="internal xref">NEXT_HOP_MTU Attribute</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-attribute-header" class="internal xref">Attribute Header</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-ip-mtu-value" class="internal xref">IP MTU Value</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-procedures" class="internal xref">Procedures</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-network-boundary" class="internal xref">Network Boundary</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-adding-the-attribute-on-rec" class="internal xref">Adding the Attribute on Receipt</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-internal-and-external-sessi" class="internal xref">Internal and External Sessions</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-promissory-semantics" class="internal xref">Promissory Semantics</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-forwarding-and-multiple-pat" class="internal xref">Forwarding and Multiple Paths</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="auto internal xref">4.6</a>.  <a href="#name-aggregation" class="internal xref">Aggregation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.7">
+                <p id="section-toc.1-1.4.2.7.1"><a href="#section-4.7" class="auto internal xref">4.7</a>.  <a href="#name-changes-of-interface-mtu" class="internal xref">Changes of Interface MTU</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-example" class="internal xref">Example</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-error-handling" class="internal xref">Error Handling</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-operational-considerations" class="internal xref">Operational Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="sec-introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">
+        Networks often accept IP packets larger than the conventional
+        1500-octet Ethernet payload at a network boundary.  A common
+        case is an interface configured so that an IP packet of 9000
+        octets can cross the boundary.  Hosts, tunnel endpoints, and
+        other routers inside a network can use that size when they know
+        it.  They learn reachability through BGP, but BGP itself has no
+        way to carry the IP MTU of the boundary with the route.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">
+        This document defines the NEXT_HOP_MTU path attribute.  The
+        attribute is optional.  Its type code is assigned by IANA and
+        is TBD in this version of the document.  It is associated with
+        the NLRI carried in the same BGP UPDATE message.  The value is
+        the IP MTU, in octets, that the attaching speaker promises is
+        acceptable for traffic toward those NLRI across one network
+        boundary.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">
+        The speaker that receives a route across the boundary is the
+        speaker that adds the attribute.  It uses the IP MTU of its
+        interface on that boundary.  It can then make the value
+        available to internal peers and, when it advertises the route
+        onward, to external peers.  The attribute describes that
+        boundary.  It is a single promissory value for the NLRI at
+        that boundary.  A speaker replaces the value only when
+        <a href="#sec-procedures" class="auto internal xref">Section 4</a> computes a new value for a
+        different boundary.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">
+        Path MTU Discovery and Packetization Layer Path MTU Discovery
+        remain the mechanisms that find the minimum MTU of a whole path
+        (<span>[<a href="#RFC8201" class="cite xref">RFC8201</a>]</span>, <span>[<a href="#RFC1191" class="cite xref">RFC1191</a>]</span>,
+        <span>[<a href="#RFC4821" class="cite xref">RFC4821</a>]</span>).  BGP-LS can distribute the MTU of
+        individual links in a link-state topology
+        (<span>[<a href="#RFC9552" class="cite xref">RFC9552</a>]</span>,
+        <span>[<a href="#I-D.ietf-idr-bgp-ls-link-mtu" class="cite xref">I-D.ietf-idr-bgp-ls-link-mtu</a>]</span>).  NEXT_HOP_MTU
+        gives a BGP speaker a promissory IP MTU for an ordinary unicast
+        NLRI at the network boundary where the route was learned.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<div id="sec-requirements">
+<section id="section-1.1">
+        <h3 id="name-requirements-language">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-requirements-language" class="section-name selfRef">Requirements Language</a>
+        </h3>
+<p id="section-1.1-1">
+          The key words "MUST", "MUST NOT", "REQUIRED", "SHALL",
+          "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT
+          RECOMMENDED", "MAY", and "OPTIONAL" in this document are to
+          be interpreted as described in BCP 14
+          <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span>
+          when, and only when, they appear in all capitals, as shown
+          here.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-terminology">
+<section id="section-2">
+      <h2 id="name-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
+      </h2>
+<p id="section-2-1">
+        This document uses the BGP terminology of <span>[<a href="#RFC4271" class="cite xref">RFC4271</a>]</span>
+        and <span>[<a href="#RFC4760" class="cite xref">RFC4760</a>]</span>.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-2">
+        <dt id="section-2-2.1">IP MTU</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.2">
+          The size, in octets, of the largest IP packet that can cross
+          a link in one piece.  The IP packet includes the IP header
+          and the IP payload.  Link-layer headers are excluded.  This
+          size is what the network boundary promises is acceptable.
+          An interface that permits an IP payload of 9000
+          octets has an IP MTU of 9000 for this attribute.<a href="#section-2-2.2" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.3">Network boundary</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.4">
+          The edge between two networks across which traffic toward an
+          NLRI is forwarded.  In the example in <a href="#sec-example" class="auto internal xref">Section 5</a>,
+          the network boundary is the link between AS 65000 and AS 65001.<a href="#section-2-2.4" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.5">Promissory value</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.6">
+          A value the attaching BGP speaker includes as its promise
+          that an IP packet of that size, destined to the NLRI, is
+          acceptable across the network boundary.<a href="#section-2-2.6" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.7">Internal session</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.8">
+          A BGP session between speakers in the same autonomous system
+          (internal BGP).<a href="#section-2-2.8" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.9">External session</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.10">
+          A BGP session between speakers in different autonomous
+          systems (external BGP).<a href="#section-2-2.10" class="pilcrow">¶</a>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-attribute">
+<section id="section-3">
+      <h2 id="name-next_hop_mtu-attribute">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-next_hop_mtu-attribute" class="section-name selfRef">NEXT_HOP_MTU Attribute</a>
+      </h2>
+<p id="section-3-1">
+        NEXT_HOP_MTU is an optional, non-transitive BGP path attribute.
+        The attribute type code is TBD, to be assigned by IANA from
+        the BGP Path Attributes registry
+        (<a href="#sec-iana" class="auto internal xref">Section 8</a>).<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">
+        The attribute applies to every NLRI in the UPDATE message that
+        carries it.  Those NLRI are the destinations for which the
+        promissory value holds.  IPv4 unicast NLRI use the encoding in
+        <span>[<a href="#RFC4271" class="cite xref">RFC4271</a>]</span>.  IPv6 unicast NLRI, and IPv4 unicast
+        NLRI carried as multiprotocol NLRI, use MP_REACH_NLRI as
+        specified in <span>[<a href="#RFC4760" class="cite xref">RFC4760</a>]</span>.  NEXT_HOP_MTU is a path
+        attribute alongside MP_REACH_NLRI.  It is not encoded inside
+        the NLRI.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">
+        This attribute is defined for IPv4 unicast (AFI 1, SAFI 1) and
+        IPv6 unicast (AFI 2, SAFI 1).  A speaker MUST NOT attach
+        NEXT_HOP_MTU to an UPDATE for any other AFI or SAFI.  Use with
+        other address families is outside the scope of this document.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<div id="sec-flags">
+<section id="section-3.1">
+        <h3 id="name-attribute-header">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-attribute-header" class="section-name selfRef">Attribute Header</a>
+        </h3>
+<p id="section-3.1-1">
+          The attribute header is the three-octet path-attribute header
+          defined in <span>[<a href="#RFC4271" class="cite xref">RFC4271</a>]</span>: one octet of flags, one
+          octet of type code, and one octet of length.  The value
+          field follows the header and is four octets long, so the
+          Extended Length bit is clear and the one-octet length is
+          sufficient.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<span id="name-next_hop_mtu-encoding"></span><div id="fig-format">
+<figure id="figure-1">
+          <div class="alignLeft art-ascii-art art-text artwork" id="section-3.1-2.1">
+<pre>
+ 0                   1                   2
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     Flags     |  Type (TBD)   |  Length (4)   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                            IP MTU                             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-next_hop_mtu-encoding" class="selfRef">NEXT_HOP_MTU encoding</a>
+          </figcaption></figure>
+</div>
+<p id="section-3.1-3">
+          The flags octet MUST be 0x80 when a speaker attaches the
+          attribute: the Optional bit is 1, and the Transitive,
+          Partial, Extended Length, and reserved bits are 0.
+          <a href="#tab-flags" class="auto internal xref">Table 1</a> restates those bits.  Bit 0 is
+          the high-order bit.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<span id="name-attribute-flag-bits"></span><div id="tab-flags">
+<table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-attribute-flag-bits" class="selfRef">Attribute flag bits</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Bit</th>
+              <th class="text-left" rowspan="1" colspan="1">Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+              <td class="text-left" rowspan="1" colspan="1">Optional</td>
+              <td class="text-left" rowspan="1" colspan="1">1</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">1</td>
+              <td class="text-left" rowspan="1" colspan="1">Transitive</td>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">2</td>
+              <td class="text-left" rowspan="1" colspan="1">Partial</td>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">3</td>
+              <td class="text-left" rowspan="1" colspan="1">Extended Length</td>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">4-7</td>
+              <td class="text-left" rowspan="1" colspan="1">Reserved</td>
+              <td class="text-left" rowspan="1" colspan="1">0</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-3.1-5">
+          The type code is TBD (one octet).  The length is 4.  A
+          speaker that does not recognize the type code follows the
+          optional non-transitive rules in <span>[<a href="#RFC4271" class="cite xref">RFC4271</a>]</span>:
+          it ignores the attribute and does not propagate it.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-value">
+<section id="section-3.2">
+        <h3 id="name-ip-mtu-value">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-ip-mtu-value" class="section-name selfRef">IP MTU Value</a>
+        </h3>
+<p id="section-3.2-1">
+          The IP MTU field is an unsigned 32-bit integer in network
+          byte order.  It is the maximum IP packet size, in octets,
+          that the attaching speaker promises is acceptable across the
+          network boundary for the NLRI in the UPDATE.  The size
+          includes the IP header and the IP payload and excludes
+          link-layer framing.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">
+          For IPv4 NLRI the value MUST be greater than or equal to 68
+          and less than or equal to 65535.  68 octets is the smallest
+          IP datagram every internet module must be able to forward
+          without further fragmentation (<span>[<a href="#RFC791" class="cite xref">RFC791</a>]</span>).
+          65535 octets is the largest value that fits in the IPv4
+          Total Length field.  For IPv6 NLRI the value MUST be greater
+          than or equal to 1280 and less than or equal to 4294967295.
+          1280 octets is the minimum IPv6 link MTU
+          (<span>[<a href="#RFC8200" class="cite xref">RFC8200</a>]</span>).  Values greater than 65535 are
+          used for IPv6 jumbograms (<span>[<a href="#RFC2675" class="cite xref">RFC2675</a>]</span>).<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2-3">
+          A value of 9000 means that an IP packet of 9000 octets is
+          acceptable.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-procedures">
+<section id="section-4">
+      <h2 id="name-procedures">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-procedures" class="section-name selfRef">Procedures</a>
+      </h2>
+<div id="sec-boundary">
+<section id="section-4.1">
+        <h3 id="name-network-boundary">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-network-boundary" class="section-name selfRef">Network Boundary</a>
+        </h3>
+<p id="section-4.1-1">
+          The network boundary of a received route is the interface
+          on which the receiving speaker forwards traffic toward the
+          BGP next hop of that route, when that interface is the edge
+          the route was learned across.  For a directly connected
+          external session, this is the interface of the session.  The
+          IP MTU of the boundary is the IP MTU of that interface for
+          the address family of the NLRI.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">
+          An internal interface is not a network boundary for a route
+          that was learned across a different edge.  A speaker MUST
+          NOT replace NEXT_HOP_MTU with the IP MTU of an internal
+          interface when it readvertises such a route.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">
+          If the BGP next hop is not reached through the interface the
+          session was received on, as with a multi-hop external
+          session, the speaker MUST NOT invent a boundary from an
+          unrelated interface.  The speaker MAY attach the attribute
+          when the operator has configured a promissory value for that
+          neighbor.  A configured value MUST be less than or equal to
+          the IP MTU of the interface that actually forwards traffic
+          toward the next hop.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-adding">
+<section id="section-4.2">
+        <h3 id="name-adding-the-attribute-on-rec">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-adding-the-attribute-on-rec" class="section-name selfRef">Adding the Attribute on Receipt</a>
+        </h3>
+<p id="section-4.2-1">
+          The BGP speaker that receives an NLRI across a network
+          boundary MAY add NEXT_HOP_MTU to that route.  The speaker
+          adds the attribute when it installs the route for local use
+          and when it advertises the route.  The route does not need
+          to have arrived with the attribute already present.
+          <a href="#sec-example" class="auto internal xref">Section 5</a> shows this case.  The receiving
+          router adds the attribute from the boundary interface.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">
+          The speaker computes the attached value as follows.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.2-3">
+          <li id="section-4.2-3.1">
+            Let L be the IP MTU, in octets, of the network boundary.
+            If L cannot be determined, the speaker MUST NOT attach
+            the attribute.<a href="#section-4.2-3.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-4.2-3.2">
+            If the NLRI are IPv4 and L is less than 68 or greater than
+            65535, or the NLRI are IPv6 and L is less than 1280 or
+            greater than 4294967295, the speaker MUST NOT attach the
+            attribute.<a href="#section-4.2-3.2" class="pilcrow">¶</a>
+</li>
+          <li id="section-4.2-3.3">
+            If the received route contains a valid NEXT_HOP_MTU value
+            R and local policy accepts R from that neighbor, the
+            attached value is the minimum of L and R.  Otherwise the
+            attached value is L.<a href="#section-4.2-3.3" class="pilcrow">¶</a>
+</li>
+          <li id="section-4.2-3.4">
+            Local policy MAY reduce the attached value further.  Policy
+            MUST NOT increase it.  The result MUST still satisfy the
+            range for the address family in
+            <a href="#sec-value" class="auto internal xref">Section 3.2</a>.<a href="#section-4.2-3.4" class="pilcrow">¶</a>
+</li>
+        </ol>
+<p id="section-4.2-4">
+          All NLRI in one UPDATE MUST share one NEXT_HOP_MTU value
+          when the attribute is present.  A speaker MAY place several
+          NLRI that share a value into one UPDATE.  NLRI that do not
+          share a value MUST be advertised in separate UPDATE
+          messages.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">
+          Absence of the attribute means the speaker makes no promise.
+          Consumers MUST treat absence as lack of information.  Absence
+          does not imply 1500, 1280, 68, or any other default.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-sessions">
+<section id="section-4.3">
+        <h3 id="name-internal-and-external-sessi">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-internal-and-external-sessi" class="section-name selfRef">Internal and External Sessions</a>
+        </h3>
+<p id="section-4.3-1">
+          NEXT_HOP_MTU MAY be carried on internal sessions and on
+          external sessions.  Internal applications include internal
+          peers, route reflectors, and functions on the receiving
+          speaker that choose a packet size for the NLRI.  External
+          applications include the external peer that receives the
+          attribute, and functions in that neighboring network that
+          use the promissory value for traffic toward the NLRI.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">
+          An implementation MUST provide configuration to enable or
+          disable attachment of the attribute, and configuration to
+          enable or disable acceptance of a received value, per
+          neighbor and per AFI and SAFI.  This document does not
+          require either behavior to be enabled on a session by
+          default.  The example in <a href="#sec-example" class="auto internal xref">Section 5</a>
+          assumes the receiving speaker is configured to add the
+          attribute.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">
+          On an internal session, a speaker that does not itself
+          forward traffic across a different network boundary for the
+          NLRI SHOULD advertise the attribute unchanged when the route
+          already has one and the BGP next hop is unchanged.  A route
+          reflector that does not change the next hop SHOULD forward
+          the attribute unchanged (<span>[<a href="#RFC4456" class="cite xref">RFC4456</a>]</span>).<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">
+          The border speaker that learned the route across the network
+          boundary SHOULD include the value it computed in
+          <a href="#sec-adding" class="auto internal xref">Section 4.2</a> when it advertises the route to
+          internal peers.  That remains true when the border speaker
+          replaces the BGP next hop with its own address.  Traffic
+          from internal peers still crosses the same network boundary,
+          so the promissory value is still the IP MTU of that
+          boundary.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-5">
+          On an external session, the value a speaker attaches MUST be
+          the promissory value for traffic that crosses the boundary
+          with that peer toward the NLRI.  When the route already
+          carries a valid NEXT_HOP_MTU and the speaker also knows the
+          IP MTU of the interface facing that peer, the attached value
+          MUST be the minimum of those two numbers, then reduced by
+          local policy if policy reduces it.  The speaker MUST NOT
+          copy a promise about one boundary onto a session that
+          crosses a different boundary without applying that minimum.
+          If the speaker cannot determine the value for the session it
+          is advertising on, it MUST omit the attribute.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+<p id="section-4.3-6">
+          A speaker that originates an NLRI MAY attach NEXT_HOP_MTU
+          when it advertises the route.  The value is the IP MTU of
+          the network boundary the advertisement is sent across,
+          subject to the minimums in <a href="#sec-value" class="auto internal xref">Section 3.2</a>.
+          Origination is optional.  The receiving speaker can add the
+          attribute from its own side of the boundary whether or not
+          the originator sent one.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-promise">
+<section id="section-4.4">
+        <h3 id="name-promissory-semantics">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-promissory-semantics" class="section-name selfRef">Promissory Semantics</a>
+        </h3>
+<p id="section-4.4-1">
+          By attaching NEXT_HOP_MTU, a speaker promises that an IP
+          packet destined to a covered NLRI, of size less than or
+          equal to the attribute value, is acceptable across the
+          network boundary.  Acceptable means the boundary interface
+          permits a packet of that size and the attaching speaker will
+          forward such a packet across that boundary toward the NLRI.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">
+          The promise covers that boundary.  An application MAY use
+          the value as the IP packet size it sends toward the NLRI
+          when the packet will cross the boundary identified by the
+          route.  An application that needs the minimum MTU of every
+          link between a source and a destination continues to use
+          Path MTU Discovery (<span>[<a href="#RFC8201" class="cite xref">RFC8201</a>]</span>,
+          <span>[<a href="#RFC1191" class="cite xref">RFC1191</a>]</span>) or Packetization Layer Path MTU
+          Discovery (<span>[<a href="#RFC4821" class="cite xref">RFC4821</a>]</span>).<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<p id="section-4.4-3">
+          NEXT_HOP_MTU MUST NOT by itself change the result of the BGP
+          Decision Process (<span>[<a href="#RFC4271" class="cite xref">RFC4271</a>]</span>).  Local policy
+          MAY select or prefer a route using the attribute.  Policy
+          that does so is a local matter.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-forwarding">
+<section id="section-4.5">
+        <h3 id="name-forwarding-and-multiple-pat">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-forwarding-and-multiple-pat" class="section-name selfRef">Forwarding and Multiple Paths</a>
+        </h3>
+<p id="section-4.5-1">
+          A speaker MAY program the promissory value as a
+          per-destination forwarding MTU for the NLRI.  It MAY do so
+          only when every path it uses to forward traffic to that NLRI
+          carries a valid NEXT_HOP_MTU.  The programmed value MUST be
+          the minimum of the values on those paths.  If any path used
+          for forwarding has no attribute, the speaker MUST NOT
+          program a promissory MTU for the combined destination.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.5-2">
+          Each path has its own path attributes.  Two paths for the
+          same NLRI may carry different NEXT_HOP_MTU values when they
+          were learned across different boundaries.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-aggregation">
+<section id="section-4.6">
+        <h3 id="name-aggregation">
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-aggregation" class="section-name selfRef">Aggregation</a>
+        </h3>
+<p id="section-4.6-1">
+          When a speaker aggregates component routes into a less
+          specific NLRI, it MAY attach NEXT_HOP_MTU to the aggregate
+          only when every component route included in the aggregate
+          has a valid NEXT_HOP_MTU.  The value MUST be the minimum of
+          the component values.  If any included component has no
+          attribute, the speaker MUST omit NEXT_HOP_MTU from the
+          aggregate.<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-changes">
+<section id="section-4.7">
+        <h3 id="name-changes-of-interface-mtu">
+<a href="#section-4.7" class="section-number selfRef">4.7. </a><a href="#name-changes-of-interface-mtu" class="section-name selfRef">Changes of Interface MTU</a>
+        </h3>
+<p id="section-4.7-1">
+          When the IP MTU of a network boundary changes, the speaker
+          that attached NEXT_HOP_MTU from that boundary MUST advertise
+          a replacement route for each affected NLRI.  The replacement
+          carries the new value computed by <a href="#sec-adding" class="auto internal xref">Section 4.2</a>.
+          If the speaker no longer makes a promise, the replacement
+          omits the attribute.  BGP has no withdraw for a single path
+          attribute.  Replacement of the route is the update.<a href="#section-4.7-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-example">
+<section id="section-5">
+      <h2 id="name-example">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-example" class="section-name selfRef">Example</a>
+      </h2>
+<p id="section-5-1">
+        <a href="#fig-topology" class="auto internal xref">Figure 2</a> shows AS 65000 and AS 65001
+        exchanging the documentation prefix 2001:db8::/48
+        (<span>[<a href="#RFC3849" class="cite xref">RFC3849</a>]</span>).  AS 65000 and AS 65001 are private
+        AS numbers (<span>[<a href="#RFC6996" class="cite xref">RFC6996</a>]</span>).  Router A in AS 65000
+        advertises the prefix to Router B in AS 65001.  The boundary
+        interface permits an IP payload of 9000 octets.  Router B, the
+        receiving router, adds NEXT_HOP_MTU with the value 9000 and
+        advertises the route to Router C inside AS 65001.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<span id="name-as-65000-and-as-65001-excha"></span><div id="fig-topology">
+<figure id="figure-2">
+        <div class="alignLeft art-ascii-art art-text artwork" id="section-5-2.1">
+<pre>
+     AS 65000                         AS 65001
+
++---------------+            +---------------+
+| Router A      |=== eBGP ===| Router B      |
+| 2001:db8:1::1 | IP payload | 2001:db8:1::2 |
+| advertises    |    9000    | receives NLRI |
+| 2001:db8::/48 |   octets   | adds NH-MTU   |
++---------------+            | value 9000    |
+                             +---------------+
+
+                                     |
+                                     | iBGP
+                                     | NH-MTU 9000
+                                     v
+                             +---------------+
+                             | Router C      |
+                             | internal      |
+                             | application   |
+                             +---------------+
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-as-65000-and-as-65001-excha" class="selfRef">AS 65000 and AS 65001 exchange 2001:db8::/48</a>
+        </figcaption></figure>
+</div>
+<p id="section-5-3">
+        The boundary subnet 2001:db8:1::/64 is outside the advertised
+        prefix 2001:db8::/48.  Router A's address on the boundary is
+        2001:db8:1::1.  Router B's address on the boundary is
+        2001:db8:1::2.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-5-4">
+        <li id="section-5-4.1">
+          Router A advertises 2001:db8::/48 to Router B.  The
+          advertisement need not include NEXT_HOP_MTU.  Router A MAY
+          include it, with the value 9000, as its own promise for the
+          same boundary.<a href="#section-5-4.1" class="pilcrow">¶</a>
+</li>
+        <li id="section-5-4.2">
+          The interface on Router B toward Router A has an IP MTU that
+          permits an IP payload of 9000 octets.  That interface is the
+          network boundary for this NLRI.<a href="#section-5-4.2" class="pilcrow">¶</a>
+</li>
+        <li id="section-5-4.3">
+          Router B receives the NLRI and adds NEXT_HOP_MTU with the
+          value 9000.  If Router A also sent the value 9000 and Router
+          B accepts it, the minimum is still 9000.  If Router A had
+          sent a smaller valid value, Router B would attach that
+          smaller value.<a href="#section-5-4.3" class="pilcrow">¶</a>
+</li>
+        <li id="section-5-4.4">
+          Router B advertises the route to Router C on an internal
+          session, including NEXT_HOP_MTU 9000.  Router C is an
+          internal application of the promissory value.  Router C can
+          treat an IP packet of 9000 octets as acceptable when that
+          packet will cross this boundary toward 2001:db8::/48.<a href="#section-5-4.4" class="pilcrow">¶</a>
+</li>
+        <li id="section-5-4.5">
+          The same procedure applies to a prefix AS 65001 advertises
+          to AS 65000.  The router that receives the prefix adds the
+          attribute from the IP MTU of its own boundary interface.<a href="#section-5-4.5" class="pilcrow">¶</a>
+</li>
+      </ol>
+<p id="section-5-5">
+        <a href="#tab-route" class="auto internal xref">Table 2</a> lists the route Router B advertises
+        to Router C when Router B does not rewrite the next hop.  The
+        IPv6 next hop and the NLRI are carried in MP_REACH_NLRI.  If
+        Router B rewrites the next hop to itself, NEXT_HOP_MTU remains
+        9000 because traffic from Router C still crosses the boundary
+        in <a href="#fig-topology" class="auto internal xref">Figure 2</a>.<a href="#section-5-5" class="pilcrow">¶</a></p>
+<span id="name-route-router-b-advertises-t"></span><div id="tab-route">
+<table class="center" id="table-2">
+        <caption>
+<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#name-route-router-b-advertises-t" class="selfRef">Route Router B advertises to Router C</a>
+        </caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Element</th>
+            <th class="text-left" rowspan="1" colspan="1">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">AFI / SAFI</td>
+            <td class="text-left" rowspan="1" colspan="1">2 / 1 (IPv6 unicast)</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">NLRI</td>
+            <td class="text-left" rowspan="1" colspan="1">2001:db8::/48</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Next hop</td>
+            <td class="text-left" rowspan="1" colspan="1">2001:db8:1::1</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">AS_PATH</td>
+            <td class="text-left" rowspan="1" colspan="1">65000</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">NEXT_HOP_MTU</td>
+            <td class="text-left" rowspan="1" colspan="1">9000</td>
+          </tr>
+        </tbody>
+      </table>
+</div>
+<p id="section-5-7">
+        9000 decimal is 0x00002328.  With the flags octet set to 0x80
+        and the length set to 4, the attribute octets are:<a href="#section-5-7" class="pilcrow">¶</a></p>
+<span id="name-attribute-octets-for-the-va"></span><div id="fig-octets">
+<figure id="figure-3">
+        <div class="alignLeft art-ascii-art art-text artwork" id="section-5-8.1">
+<pre>
+ 0                   1                   2
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      0x80     |      TBD      |      0x04     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                          0x00002328                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-attribute-octets-for-the-va" class="selfRef">Attribute octets for the value 9000</a>
+        </figcaption></figure>
+</div>
+<p id="section-5-9">
+        The second octet is the IANA-assigned type code.  It is shown
+        as TBD until that assignment exists.<a href="#section-5-9" class="pilcrow">¶</a></p>
+<p id="section-5-10">
+        Traffic toward 2001:db8::/48 flows from Router C to Router B
+        and then across the boundary to Router A.  The promissory
+        value 9000 applies to IP packets on that crossing.  An
+        external application uses the same attribute when a speaker
+        includes it on an external advertisement.  The value on that
+        advertisement is computed for the boundary that traffic from
+        that external peer will cross, as specified in
+        <a href="#sec-sessions" class="auto internal xref">Section 4.3</a>.<a href="#section-5-10" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-errors">
+<section id="section-6">
+      <h2 id="name-error-handling">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
+      </h2>
+<p id="section-6-1">
+        NEXT_HOP_MTU errors use the attribute discard approach of
+        <span>[<a href="#RFC7606" class="cite xref">RFC7606</a>]</span>.  The malformed attribute is
+        discarded and the UPDATE is processed as if the attribute had
+        not been present.  The speaker MUST NOT use a discarded value
+        as a promissory MTU.  These errors MUST NOT cause a BGP
+        NOTIFICATION and MUST NOT cause the NLRI to be treated as
+        withdrawn.  A malformed optional hint is discarded so that it
+        cannot remove reachability.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">
+        A speaker MUST discard the attribute as malformed when any of
+        the following is true:<a href="#section-6-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6-3.1">
+          The attribute appears more than once in the UPDATE.<a href="#section-6-3.1" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-6-3.2">
+          The length is not 4.<a href="#section-6-3.2" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-6-3.3">
+          The Optional bit is 0, the Transitive bit is 1, the Partial
+          bit is 1, the Extended Length bit is 1, or any reserved flag
+          bit is 1.<a href="#section-6-3.3" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-6-3.4">
+          The value is 0.<a href="#section-6-3.4" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-6-3.5">
+          The UPDATE carries IPv4 unicast NLRI and the value is less
+          than 68 or greater than 65535.<a href="#section-6-3.5" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-6-3.6">
+          The UPDATE carries IPv6 unicast NLRI and the value is less
+          than 1280.<a href="#section-6-3.6" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-6-3.7">
+          The UPDATE carries NLRI for an AFI or SAFI other than IPv4
+          unicast or IPv6 unicast.<a href="#section-6-3.7" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-6-4">
+        A value that meets the checks above is syntactically valid.
+        Whether the neighbor is permitted to constrain the local
+        promise with that value is a matter of policy
+        (<a href="#sec-adding" class="auto internal xref">Section 4.2</a>).<a href="#section-6-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-operational">
+<section id="section-7">
+      <h2 id="name-operational-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-operational-considerations" class="section-name selfRef">Operational Considerations</a>
+      </h2>
+<p id="section-7-1">
+        Operators who want a receiving router to publish a boundary
+        MTU enable attachment on that router for the neighbors that
+        should receive the promise.  In <a href="#fig-topology" class="auto internal xref">Figure 2</a>,
+        Router B is enabled to add NEXT_HOP_MTU for the internal
+        session toward Router C.  Router B's boundary interface is
+        configured with an IP MTU of 9000 before the attribute can
+        promise 9000.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">
+        Both ends of a boundary are normally configured with the same
+        IP MTU.  The receiving speaker promises the size its own
+        interface permits.  When the advertising peer also sends
+        NEXT_HOP_MTU and the receiver accepts it, the value propagated
+        inside the receiving AS is the minimum of the two, which
+        covers the case where the two ends differ.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-3">
+        Internal consumers can use the value as a per-destination
+        forwarding MTU, as a packetization limit for traffic they
+        originate toward the NLRI, or as input to an encapsulation
+        function that subtracts its own overhead from the promissory
+        size.  External consumers can use a value received on an
+        external session in the same ways, for traffic that will cross
+        the boundary the advertisement described.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<p id="section-7-4">
+        TCP MSS clamping and Path MTU Discovery continue to apply.
+        NEXT_HOP_MTU does not remove the need for them on paths that
+        extend past the boundary identified by the route.<a href="#section-7-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-iana">
+<section id="section-8">
+      <h2 id="name-iana-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-8-1">
+        IANA is requested to assign a code point from the BGP Path
+        Attributes registry in the Border Gateway Protocol (BGP)
+        Parameters group, as shown in <a href="#tab-iana" class="auto internal xref">Table 3</a>.  The
+        attribute is optional and non-transitive.  The value field is
+        four octets.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<span id="name-addition-to-the-bgp-path-at"></span><div id="tab-iana">
+<table class="center" id="table-3">
+        <caption>
+<a href="#table-3" class="selfRef">Table 3</a>:
+<a href="#name-addition-to-the-bgp-path-at" class="selfRef">Addition to the BGP Path Attributes registry</a>
+        </caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Value</th>
+            <th class="text-left" rowspan="1" colspan="1">Code</th>
+            <th class="text-left" rowspan="1" colspan="1">Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">TBD</td>
+            <td class="text-left" rowspan="1" colspan="1">NEXT_HOP_MTU</td>
+            <td class="text-left" rowspan="1" colspan="1">This document</td>
+          </tr>
+        </tbody>
+      </table>
+</div>
+<p id="section-8-3">
+        The RFC Editor is asked to replace TBD in this document with
+        the assigned code point and to remove this paragraph.<a href="#section-8-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-security">
+<section id="section-9">
+      <h2 id="name-security-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-9-1">
+        NEXT_HOP_MTU is a promise that another speaker may use to
+        choose an IP packet size.  A value larger than the size the
+        boundary will actually accept can cause packet loss when
+        senders transmit packets the boundary drops.  A value smaller
+        than the size the boundary will accept causes senders to use
+        smaller packets.  That reduces efficiency and can interact
+        with tunnel overhead and with Path MTU Discovery.<a href="#section-9-1" class="pilcrow">¶</a></p>
+<p id="section-9-2">
+        The speaker that adds the attribute on receipt derives the
+        value from its own interface MTU.  That local measurement
+        limits exposure to a peer that overstates its MTU.  When a
+        received value is accepted, it can only reduce the attached
+        value, because the attached value is the minimum of the local
+        boundary IP MTU and the received value.  A peer can still
+        offer a smaller value and cause this speaker to propagate that
+        smaller promise.  Acceptance of a received value is therefore
+        a configuration choice per neighbor
+        (<a href="#sec-sessions" class="auto internal xref">Section 4.3</a>).  Operators SHOULD enable
+        acceptance from an external peer only when that peer is
+        trusted to state a boundary MTU.<a href="#section-9-2" class="pilcrow">¶</a></p>
+<p id="section-9-3">
+        Advertising the attribute tells the receiving peer the IP MTU
+        of a network boundary.  Operators who treat that MTU as
+        sensitive can disable attachment toward the peers in question.<a href="#section-9-3" class="pilcrow">¶</a></p>
+<p id="section-9-4">
+        This document defines no new session authentication.  The
+        existing protection of the BGP session applies.  Operational
+        guidance for protecting BGP sessions is discussed in
+        <span>[<a href="#RFC7454" class="cite xref">RFC7454</a>]</span>.  Malformed NEXT_HOP_MTU attributes
+        are discarded without a session reset and without withdrawing
+        the NLRI (<a href="#sec-errors" class="auto internal xref">Section 6</a>), so a corrupt or
+        hostile optional value cannot be used to drop the session or
+        to remove the route.<a href="#section-9-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<section id="section-10">
+      <h2 id="name-normative-references">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+      </h2>
+<dl class="references">
+<dt id="RFC2119">[RFC2119]</dt>
+      <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2119">https://www.rfc-editor.org/info/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4271">[RFC4271]</dt>
+      <dd>
+<span class="refAuthor">Rekhter, Y., Ed.</span>, <span class="refAuthor">Li, T., Ed.</span>, and <span class="refAuthor">S. Hares, Ed.</span>, <span class="refTitle">"A Border Gateway Protocol 4 (BGP-4)"</span>, <span class="seriesInfo">RFC 4271</span>, <span class="seriesInfo">DOI 10.17487/RFC4271</span>, <time datetime="2006-01" class="refDate">January 2006</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc4271">https://www.rfc-editor.org/info/rfc4271</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4760">[RFC4760]</dt>
+      <dd>
+<span class="refAuthor">Bates, T.</span>, <span class="refAuthor">Chandra, R.</span>, <span class="refAuthor">Katz, D.</span>, and <span class="refAuthor">Y. Rekhter</span>, <span class="refTitle">"Multiprotocol Extensions for BGP-4"</span>, <span class="seriesInfo">RFC 4760</span>, <span class="seriesInfo">DOI 10.17487/RFC4760</span>, <time datetime="2007-01" class="refDate">January 2007</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc4760">https://www.rfc-editor.org/info/rfc4760</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7606">[RFC7606]</dt>
+      <dd>
+<span class="refAuthor">Chen, E., Ed.</span>, <span class="refAuthor">Scudder, J., Ed.</span>, <span class="refAuthor">Mohapatra, P.</span>, and <span class="refAuthor">K. Patel</span>, <span class="refTitle">"Revised Error Handling for BGP UPDATE Messages"</span>, <span class="seriesInfo">RFC 7606</span>, <span class="seriesInfo">DOI 10.17487/RFC7606</span>, <time datetime="2015-08" class="refDate">August 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7606">https://www.rfc-editor.org/info/rfc7606</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC791">[RFC791]</dt>
+      <dd>
+<span class="refAuthor">Postel, J.</span>, <span class="refTitle">"Internet Protocol"</span>, <span class="seriesInfo">STD 5</span>, <span class="seriesInfo">RFC 791</span>, <span class="seriesInfo">DOI 10.17487/RFC791</span>, <time datetime="1981-09" class="refDate">September 1981</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc791">https://www.rfc-editor.org/info/rfc791</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+      <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8174">https://www.rfc-editor.org/info/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8200">[RFC8200]</dt>
+    <dd>
+<span class="refAuthor">Deering, S.</span> and <span class="refAuthor">R. Hinden</span>, <span class="refTitle">"Internet Protocol, Version 6 (IPv6) Specification"</span>, <span class="seriesInfo">STD 86</span>, <span class="seriesInfo">RFC 8200</span>, <span class="seriesInfo">DOI 10.17487/RFC8200</span>, <time datetime="2017-07" class="refDate">July 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8200">https://www.rfc-editor.org/info/rfc8200</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+<section id="section-11">
+      <h2 id="name-informative-references">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+      </h2>
+<dl class="references">
+<dt id="I-D.ietf-idr-bgp-ls-link-mtu">[I-D.ietf-idr-bgp-ls-link-mtu]</dt>
+      <dd>
+<span class="refAuthor">Zhu, Y.</span>, <span class="refAuthor">Hu, Z.</span>, <span class="refAuthor">Peng, S.</span>, and <span class="refAuthor">R. Mwehair</span>, <span class="refTitle">"Signaling Maximum Transmission Unit (MTU) using BGP-LS"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-idr-bgp-ls-link-mtu-12</span>, <time datetime="2026-05-20" class="refDate">20 May 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ls-link-mtu-12">https://datatracker.ietf.org/doc/html/draft-ietf-idr-bgp-ls-link-mtu-12</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC1191">[RFC1191]</dt>
+      <dd>
+<span class="refAuthor">Mogul, J.</span> and <span class="refAuthor">S. Deering</span>, <span class="refTitle">"Path MTU discovery"</span>, <span class="seriesInfo">RFC 1191</span>, <span class="seriesInfo">DOI 10.17487/RFC1191</span>, <time datetime="1990-11" class="refDate">November 1990</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc1191">https://www.rfc-editor.org/info/rfc1191</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2675">[RFC2675]</dt>
+      <dd>
+<span class="refAuthor">Borman, D.</span>, <span class="refAuthor">Deering, S.</span>, and <span class="refAuthor">R. Hinden</span>, <span class="refTitle">"IPv6 Jumbograms"</span>, <span class="seriesInfo">RFC 2675</span>, <span class="seriesInfo">DOI 10.17487/RFC2675</span>, <time datetime="1999-08" class="refDate">August 1999</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2675">https://www.rfc-editor.org/info/rfc2675</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC3849">[RFC3849]</dt>
+      <dd>
+<span class="refAuthor">Huston, G.</span>, <span class="refAuthor">Lord, A.</span>, and <span class="refAuthor">P. Smith</span>, <span class="refTitle">"IPv6 Address Prefix Reserved for Documentation"</span>, <span class="seriesInfo">RFC 3849</span>, <span class="seriesInfo">DOI 10.17487/RFC3849</span>, <time datetime="2004-07" class="refDate">July 2004</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc3849">https://www.rfc-editor.org/info/rfc3849</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4456">[RFC4456]</dt>
+      <dd>
+<span class="refAuthor">Bates, T.</span>, <span class="refAuthor">Chen, E.</span>, and <span class="refAuthor">R. Chandra</span>, <span class="refTitle">"BGP Route Reflection: An Alternative to Full Mesh Internal BGP (IBGP)"</span>, <span class="seriesInfo">RFC 4456</span>, <span class="seriesInfo">DOI 10.17487/RFC4456</span>, <time datetime="2006-04" class="refDate">April 2006</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc4456">https://www.rfc-editor.org/info/rfc4456</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4821">[RFC4821]</dt>
+      <dd>
+<span class="refAuthor">Mathis, M.</span> and <span class="refAuthor">J. Heffner</span>, <span class="refTitle">"Packetization Layer Path MTU Discovery"</span>, <span class="seriesInfo">RFC 4821</span>, <span class="seriesInfo">DOI 10.17487/RFC4821</span>, <time datetime="2007-03" class="refDate">March 2007</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc4821">https://www.rfc-editor.org/info/rfc4821</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6996">[RFC6996]</dt>
+      <dd>
+<span class="refAuthor">Mitchell, J.</span>, <span class="refTitle">"Autonomous System (AS) Reservation for Private Use"</span>, <span class="seriesInfo">BCP 6</span>, <span class="seriesInfo">RFC 6996</span>, <span class="seriesInfo">DOI 10.17487/RFC6996</span>, <time datetime="2013-07" class="refDate">July 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc6996">https://www.rfc-editor.org/info/rfc6996</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7454">[RFC7454]</dt>
+      <dd>
+<span class="refAuthor">Durand, J.</span>, <span class="refAuthor">Pepelnjak, I.</span>, and <span class="refAuthor">G. Doering</span>, <span class="refTitle">"BGP Operations and Security"</span>, <span class="seriesInfo">BCP 194</span>, <span class="seriesInfo">RFC 7454</span>, <span class="seriesInfo">DOI 10.17487/RFC7454</span>, <time datetime="2015-02" class="refDate">February 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7454">https://www.rfc-editor.org/info/rfc7454</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8201">[RFC8201]</dt>
+      <dd>
+<span class="refAuthor">McCann, J.</span>, <span class="refAuthor">Deering, S.</span>, <span class="refAuthor">Mogul, J.</span>, and <span class="refAuthor">R. Hinden, Ed.</span>, <span class="refTitle">"Path MTU Discovery for IP version 6"</span>, <span class="seriesInfo">STD 87</span>, <span class="seriesInfo">RFC 8201</span>, <span class="seriesInfo">DOI 10.17487/RFC8201</span>, <time datetime="2017-07" class="refDate">July 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8201">https://www.rfc-editor.org/info/rfc8201</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9552">[RFC9552]</dt>
+    <dd>
+<span class="refAuthor">Talaulikar, K., Ed.</span>, <span class="refTitle">"Distribution of Link-State and Traffic Engineering Information Using BGP"</span>, <span class="seriesInfo">RFC 9552</span>, <span class="seriesInfo">DOI 10.17487/RFC9552</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc9552">https://www.rfc-editor.org/info/rfc9552</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+<div id="authors-addresses">
+<section id="appendix-A">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Jared Mauch</span></div>
+<div dir="auto" class="left"><span class="org">Akamai</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:jared@akamai.com" class="email">jared@akamai.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
