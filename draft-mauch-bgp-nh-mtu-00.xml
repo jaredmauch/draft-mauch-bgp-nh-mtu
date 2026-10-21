@@ -202,9 +202,7 @@
         <t>
           All NLRI in one UPDATE that carries NEXT_HOP_MTU MUST share
           the same value; otherwise they MUST be split across UPDATE
-          messages.  Absence of the attribute means no promise;
-          consumers MUST NOT assume a default (1500, 1280, 68, or
-          otherwise).
+          messages.  Absence of the attribute means no promise.
         </t>
       </section>
 
