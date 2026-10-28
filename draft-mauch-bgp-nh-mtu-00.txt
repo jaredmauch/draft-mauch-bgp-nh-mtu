@@ -4,8 +4,8 @@
 
 Network Working Group                                           J. Mauch
 Internet-Draft                                                    Akamai
-Intended status: Standards Track                         21 October 2026
-Expires: 24 April 2027
+Intended status: Standards Track                         28 October 2026
+Expires: 1 May 2027
 
 
                        BGP Next Hop MTU Attribute
@@ -46,14 +46,14 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 April 2027.
+   This Internet-Draft will expire on 1 May 2027.
 
 
 
 
 
 
-Mauch                     Expires 24 April 2027                 [Page 1]
+Mauch                      Expires 1 May 2027                   [Page 1]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Mauch                     Expires 24 April 2027                 [Page 2]
+Mauch                      Expires 1 May 2027                   [Page 2]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
@@ -134,7 +134,7 @@ Internet-Draft              BGP Next Hop MTU                October 2026
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
    "OPTIONAL" in this document are to be interpreted as described in BCP
-   14 [RFC2119], [RFC8174] when, and only when, they appear in all
+   14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
 2.  NEXT_HOP_MTU Attribute
@@ -165,7 +165,7 @@ Internet-Draft              BGP Next Hop MTU                October 2026
 
 
 
-Mauch                     Expires 24 April 2027                 [Page 3]
+Mauch                      Expires 1 May 2027                   [Page 3]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
@@ -221,7 +221,7 @@ Internet-Draft              BGP Next Hop MTU                October 2026
 
 
 
-Mauch                     Expires 24 April 2027                 [Page 4]
+Mauch                      Expires 1 May 2027                   [Page 4]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
@@ -277,7 +277,7 @@ Internet-Draft              BGP Next Hop MTU                October 2026
 
 
 
-Mauch                     Expires 24 April 2027                 [Page 5]
+Mauch                      Expires 1 May 2027                   [Page 5]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
@@ -333,7 +333,7 @@ Internet-Draft              BGP Next Hop MTU                October 2026
 
 
 
-Mauch                     Expires 24 April 2027                 [Page 6]
+Mauch                      Expires 1 May 2027                   [Page 6]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
@@ -389,7 +389,7 @@ Internet-Draft              BGP Next Hop MTU                October 2026
 
 
 
-Mauch                     Expires 24 April 2027                 [Page 7]
+Mauch                      Expires 1 May 2027                   [Page 7]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
@@ -445,7 +445,7 @@ Internet-Draft              BGP Next Hop MTU                October 2026
 
 
 
-Mauch                     Expires 24 April 2027                 [Page 8]
+Mauch                      Expires 1 May 2027                   [Page 8]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
@@ -501,7 +501,7 @@ Internet-Draft              BGP Next Hop MTU                October 2026
 
 
 
-Mauch                     Expires 24 April 2027                 [Page 9]
+Mauch                      Expires 1 May 2027                   [Page 9]
 
 Internet-Draft              BGP Next Hop MTU                October 2026
 
@@ -557,4 +557,4 @@ Author's Address
 
 
 
-Mauch                     Expires 24 April 2027                [Page 10]
+Mauch                      Expires 1 May 2027                  [Page 10]
